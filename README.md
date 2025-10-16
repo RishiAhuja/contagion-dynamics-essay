@@ -14,7 +14,7 @@ A computational investigation into how network topology dictates the dynamics of
 ## Repository Structure
 
 ```
-dis-paper/
+contagion-dynamics-essay/
 ├── paper.tex                    # Main LaTeX paper (single file)
 ├── paper.md                     # Markdown draft (work in progress)
 ├── requirements.txt             # Python dependencies
@@ -56,8 +56,8 @@ dis-paper/
 
 ```bash
 cd /path/to/your/workspace
-git clone <repository-url>
-cd dis-paper
+git clone https://github.com/RishiAhuja/contagion-dynamics-essay
+cd contagion-dynamics-essay
 ```
 
 ### 2. Install Python Dependencies
@@ -269,15 +269,11 @@ If you use this work, please cite:
 }
 ```
 
-## License
-
-This work is part of an academic project. Please contact the authors for usage permissions.
-
 ## Contact
 
 For questions or collaboration:
 - Primary Contact: Rishi Ahuja (24124092)
-- Repository: [Add repository URL here]
+- Repository: https://github.com/RishiAhuja/contagion-dynamics-essay
 
 ---
 
