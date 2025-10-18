@@ -13,6 +13,12 @@ all: figures pdf
 figures:
 	@echo "Generating phase transition visualizations..."
 	$(PYTHON) $(SRC_DIR)/generate_phase_transition.py
+	@echo "Generating Watts-Strogatz diagrams..."
+	$(PYTHON) $(SRC_DIR)/generate_ws_diagrams.py
+	@echo "Generating small-world transition analysis..."
+	$(PYTHON) $(SRC_DIR)/generate_small_world_analysis.py
+	@echo "Generating Barabási-Albert analysis..."
+	$(PYTHON) $(SRC_DIR)/generate_ba_analysis.py
 
 # Compile PDF
 pdf:

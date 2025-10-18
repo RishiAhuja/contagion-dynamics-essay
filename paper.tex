@@ -180,57 +180,71 @@ Most nodes will have a degree very close to the network's average ($\lambda = p(
 
 \paragraph{Path Length and the Emergence of the Giant Component.} The most fascinating property of a random graph is its dramatic \textbf{phase transition}. It doesn't just grow bigger smoothly; it fundamentally changes its character at a critical tipping point. This transition is best understood by observing the size of the largest connected cluster of nodes—the ``giant component''—as we slowly increase the network's average degree, $\lambda$.
 
-\begin{itemize}[leftmargin=*]
-    \item \textbf{When $\lambda < 1$ (Subcritical Phase):} When the average node has less than one connection, the network is a fragmented archipelago of tiny, isolated islands. A contagion starting on one island cannot spread to another. The largest component is minuscule, containing only a logarithmic number of nodes ($\log(N)$).
-    
-    \item \textbf{When $\lambda = 1$ (Critical Point):} This is the magic moment. As the average degree hits exactly one, the small islands begin to connect. Suddenly, a single, connected component emerges that is significantly larger than all the others. This is the birth of the \textbf{giant component}.
-    
-    \item \textbf{When $\lambda > 1$ (Supercritical Phase):} Once the average degree surpasses one, the giant component grows rapidly, absorbing the smaller islands and a large fraction of any newly added nodes. The network is now a cohesive whole.
-\end{itemize}
+To demonstrate this phenomenon, we generated random networks of fixed size $N = 250$ at five strategic values of $\lambda$ around the critical point. For each value, we computed the corresponding edge probability $p = \lambda / (N - 1)$ and constructed a $G(N, p)$ graph. In the visualizations that follow, nodes belonging to the largest connected component (the ``giant component'') are colored red, while all other nodes are gray.
 
-Within this giant component, the average path length is remarkably short, scaling with the logarithm of the network size, $\log(N)$. The random nature of the connections, while not creating hubs, ensures that there are always enough long-distance shortcuts to prevent the ``40-million-step'' problem seen in purely ordered networks.
+\paragraph{The Subcritical Phase ($\lambda < 1$).} When the average node has less than one connection, the network is a fragmented archipelago of tiny, isolated islands. A contagion starting on one island cannot spread to another. The largest component is minuscule, containing only a logarithmic number of nodes ($\log(N)$).
 
-To visualize this dramatic phase transition, we generated random networks of fixed size $N = 250$ at five strategic values of $\lambda$ around the critical point. For each value, we computed the corresponding edge probability $p = \lambda / (N - 1)$ and constructed a $G(N, p)$ graph. The results are shown in Figure~\ref{fig:phase_transition}, where nodes belonging to the largest connected component (the ``giant component'') are colored red, while all other nodes are gray.
+Figure~\ref{fig:subcritical} shows this fragmentation dramatically. At $\lambda = 0.5$ (Figure~\ref{fig:lambda_0.5}), the network consists of many tiny, disconnected clusters with no single component dominating. Even as we increase to $\lambda = 0.8$ (Figure~\ref{fig:lambda_0.8}), the clusters grow slightly but the network remains fundamentally fragmented—there is no cohesive structure capable of supporting network-wide cascades.
 
 \begin{figure}[htbp]
     \centering
-    \begin{subfigure}[b]{0.32\textwidth}
+    \begin{subfigure}[b]{0.48\columnwidth}
         \includegraphics[width=\textwidth]{figures/phase_transition_lambda_0.5.png}
-        \caption{$\lambda = 0.5$ (Subcritical)}
+        \caption{$\lambda = 0.5$}
         \label{fig:lambda_0.5}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.32\textwidth}
+    \begin{subfigure}[b]{0.48\columnwidth}
         \includegraphics[width=\textwidth]{figures/phase_transition_lambda_0.8.png}
-        \caption{$\lambda = 0.8$ (Subcritical)}
+        \caption{$\lambda = 0.8$}
         \label{fig:lambda_0.8}
     \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.32\textwidth}
-        \includegraphics[width=\textwidth]{figures/phase_transition_lambda_1.0.png}
-        \caption{$\lambda = 1.0$ (Critical)}
-        \label{fig:lambda_1.0}
-    \end{subfigure}
-    
-    \vspace{0.5cm}
-    
-    \begin{subfigure}[b]{0.32\textwidth}
+    \caption{\textbf{Subcritical phase ($\lambda < 1$).} Networks fragment into many small, isolated clusters. The largest component (red) contains only a handful of nodes. No pathway exists for network-wide contagion.}
+    \label{fig:subcritical}
+\end{figure}
+
+\paragraph{The Critical Point ($\lambda = 1$).} This is the magic moment. As the average degree hits exactly one, the small islands begin to connect. Suddenly, a single, connected component emerges that is significantly larger than all the others. This is the birth of the \textbf{giant component}.
+
+Figure~\ref{fig:critical} captures this pivotal transition. At precisely $\lambda = 1.0$, we witness the emergence of a connected component that, while still modest in size, is qualitatively different from the isolated fragments of the subcritical phase. This marks the threshold where network-wide percolation becomes possible.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\columnwidth]{figures/phase_transition_lambda_1.0.png}
+    \caption{\textbf{Critical point ($\lambda = 1$).} At the phase transition threshold, a giant component suddenly emerges. The network transforms from fragmented clusters to a cohesive structure with the potential for widespread cascades.}
+    \label{fig:critical}
+\end{figure}
+
+\paragraph{The Supercritical Phase ($\lambda > 1$).} Once the average degree surpasses one, the giant component grows rapidly, absorbing the smaller islands and a large fraction of any newly added nodes. The network is now a cohesive whole.
+
+Figure~\ref{fig:supercritical} demonstrates the dramatic growth of the giant component in the supercritical regime. At $\lambda = 1.2$ (Figure~\ref{fig:lambda_1.2}), the giant component already contains 32\% of all nodes—a striking jump from the critical point. By $\lambda = 2.0$ (Figure~\ref{fig:lambda_2.0}), over 83\% of nodes belong to the giant component, creating a nearly fully connected network with only a few isolated stragglers. Within this giant component, the average path length is remarkably short, scaling with the logarithm of the network size, $\log(N)$.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\columnwidth}
         \includegraphics[width=\textwidth]{figures/phase_transition_lambda_1.2.png}
-        \caption{$\lambda = 1.2$ (Supercritical)}
+        \caption{$\lambda = 1.2$}
         \label{fig:lambda_1.2}
     \end{subfigure}
     \hfill
-    \begin{subfigure}[b]{0.32\textwidth}
+    \begin{subfigure}[b]{0.48\columnwidth}
         \includegraphics[width=\textwidth]{figures/phase_transition_lambda_2.0.png}
-        \caption{$\lambda = 2.0$ (Supercritical)}
+        \caption{$\lambda = 2.0$}
         \label{fig:lambda_2.0}
     \end{subfigure}
-    
-    \caption{The phase transition in Erdős-Rényi random networks. Each panel shows a network of $N = 250$ nodes at different average degrees $\lambda$. Red nodes belong to the largest connected component (giant component), while gray nodes belong to smaller isolated clusters. (a) At $\lambda = 0.5$, the network is a disconnected archipelago of tiny fragments. (b) As $\lambda$ approaches 1, components grow but remain fragmented. (c) At the critical point $\lambda = 1.0$, a giant component suddenly emerges, connecting a significant fraction of nodes. (d--e) In the supercritical phase ($\lambda > 1$), the giant component dominates, creating a cohesive, fully connected network.}
-    \label{fig:phase_transition}
+    \caption{\textbf{Supercritical phase ($\lambda > 1$).} The giant component dominates, rapidly absorbing nodes as $\lambda$ increases. The network becomes cohesive and capable of sustaining widespread cascades.}
+    \label{fig:supercritical}
 \end{figure}
 
-The visualization dramatically demonstrates the theoretical predictions. In the subcritical regime (Figures~\ref{fig:lambda_0.5}--\ref{fig:lambda_0.8}), the network consists of many small, disconnected clusters with no dominant structure. At the critical point (Figure~\ref{fig:lambda_1.0}), we witness the sudden emergence of a large connected component that spans the network. In the supercritical phase (Figures~\ref{fig:lambda_1.2}--\ref{fig:lambda_2.0}), the giant component rapidly absorbs nearly all nodes, creating a single cohesive network capable of supporting widespread cascades.
+The random nature of the connections, while not creating hubs, ensures that there are always enough long-distance shortcuts to prevent the ``40-million-step'' problem seen in purely ordered networks. This phase transition—from disconnected fragments to a cohesive whole—is not merely a quantitative change but a fundamental qualitative shift in the network's capacity to support cascading phenomena.
+
+\paragraph{Quantifying the Transition.} To complement these qualitative visualizations, Figure~\ref{fig:phase_curve} shows the quantitative relationship between average degree and giant component size. The curve reveals the sharp, nonlinear growth of the giant component around $\lambda = 1$, with the fraction of nodes jumping from near-zero to over 50\% within a narrow range of $\lambda$ values. This S-shaped curve is the signature of a phase transition, demonstrating that the emergence of global connectivity is an abrupt, threshold-dependent phenomenon rather than a gradual process.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/phase_transition_curve.png}
+    \caption{\textbf{Quantitative phase transition.} The fraction of nodes in the giant component as a function of average degree $\lambda$. The sharp inflection point at $\lambda = 1$ (marked by the dashed red line) demonstrates the threshold nature of the transition from fragmented to connected networks.}
+    \label{fig:phase_curve}
+\end{figure}
 
 \subsubsection{Implications for Our Contagion Simulation}
 
@@ -241,9 +255,293 @@ Based on this deep dive, we can formulate a clear set of hypotheses for how an e
     
     \item \textbf{Potential for Widespread but Not Explosive Growth}: The short average path length means the virus has the potential to reach most of the network. However, the lack of hubs and low clustering means it cannot spread with the explosive, exponential velocity that a super-spreader event would cause.
     
-    \item \textbf{Predictable Epidemic Curve}: We hypothesize that the epidemic curve (number of infected over time) will follow a classic, relatively symmetric bell shape. The growth will be steady and predictable, lacking the sharp, unpredictable peaks that might be caused by more complex network structures.
+    \item \textbf{Predictable Epidemic Curve}: We hypothesize that when simulating disease spread (Section~\ref{sec:future}), the epidemic curve—plotting the number of infected individuals over time—will follow a classic, relatively symmetric bell shape. The growth will be steady and predictable, lacking the sharp, unpredictable peaks that might be caused by more complex network structures with hubs or clustering.
 \end{enumerate}
 
 This model, in its elegant simplicity, provides the perfect canvas upon which to paint our first simulation, giving us the essential baseline we need to appreciate the profound effects of network structure that we will explore next.
+
+\subsection{The Small-World Network: Bridging Local Clusters (Watts-Strogatz Model)}
+
+\subsubsection{Motivation and Historical Context}
+
+By the late 1990s, it was clear that the random network model, for all its mathematical elegance, failed to capture a defining feature of human social networks: \textbf{clustering}. Most people live in tight-knit communities where their friends are also friends with each other—a property known as high transitivity. Yet, empirical evidence, from Stanley Milgram's famous 1960s experiment to modern analyses of social media, confirmed the ``six degrees of separation'' phenomenon. This suggested the world was also ``small,'' with short path lengths characteristic of random graphs.
+
+This presented a paradox: how could a network be simultaneously highly ordered and locally clustered, yet appear globally random and highly connected? Sociologist Mark Granovetter's influential work on the ``strength of weak ties'' provided a clue, suggesting that acquaintances (weak ties) outside our immediate social circles are crucial for connecting us to the wider world. In 1998, Duncan Watts and Steven Strogatz resolved this paradox with their elegant small-world model, designed specifically to generate networks that are simultaneously highly clustered and have short average path lengths, just like real human societies.
+
+\subsubsection{Formal Construction and Parameters}
+
+The Watts-Strogatz (WS) model brilliantly bridges the gap between perfect order and pure randomness. It begins with a highly structured network and then introduces a controlled amount of disorder. The algorithm is defined by three parameters: $N$ (the number of nodes), $k$ (the mean degree, which must be an even integer), and $\beta$ (the rewiring probability).
+
+\paragraph{Initialization (Order).} The construction begins with a regular ring lattice. The $N$ nodes are arranged in a circle. Each node is then connected to its $k/2$ nearest neighbors on its left and its $k/2$ nearest neighbors on its right. 
+
+Figure~\ref{fig:ws_lattice} illustrates this initial configuration, focusing on a single node and its immediate connections. In this initial state ($\beta = 0$), the network is perfectly ordered. It has a very high clustering coefficient because a node's neighbors are also neighbors with each other. However, it also has a very long average path length, as getting from one side of the circle to the other requires traversing a large number of nodes.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{figures/ws_ring_lattice.png}
+    \caption{\textbf{Ring lattice initialization ($\beta = 0$).} A perfectly ordered network where each node connects to its $k/2$ nearest neighbors on each side. This configuration exhibits high clustering but long path lengths. The central node (highlighted) shows the local neighborhood structure characteristic of the initial lattice.}
+    \label{fig:ws_lattice}
+\end{figure}
+
+\paragraph{Random Rewiring (Disorder).} The algorithm then introduces ``shortcuts.'' It iterates through each edge in the lattice. For each edge, with a probability $\beta$, one end of the edge is disconnected from its original node and reconnected to a randomly chosen node elsewhere in the network. Self-loops and duplicate edges are forbidden.
+
+Figure~\ref{fig:ws_rewired} demonstrates the dramatic effect of rewiring. Even with a small rewiring probability, long-range shortcuts emerge that drastically reduce the average path length while preserving most of the original clustering. These shortcuts—Granovetter's ``weak ties''—are the key to the small-world property.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{figures/ws_rewired_network.png}
+    \caption{\textbf{Small-world network after rewiring ($\beta > 0$).} Random rewiring creates long-range shortcuts (shown as edges crossing the ring) that dramatically reduce path length while maintaining high local clustering. The central node now has both local connections (to neighbors) and distant shortcuts, exemplifying the ``small-world'' property.}
+    \label{fig:ws_rewired}
+\end{figure}
+
+The parameter $\beta$ is the crucial ``knob'' that interpolates between perfect order ($\beta=0$) and a graph that is nearly random ($\beta=1$). The groundbreaking discovery of Watts and Strogatz was understanding the dramatic effects that occur for very small, non-zero values of $\beta$. Even when $\beta$ is as small as 0.01 (rewiring just 1\% of edges), the average path length drops dramatically from $O(N)$ to $O(\log N)$, while the clustering coefficient remains nearly as high as the ordered lattice. This is the essence of the small-world phenomenon: a small number of random connections can dramatically alter global properties while preserving local structure.
+
+\subsubsection{Detailed Properties and Mathematical Analysis}
+
+The genius of the WS model lies in how the network's properties change as $\beta$ is tuned.
+
+\paragraph{High Clustering Coefficient.} When $\beta$ is small (e.g., 0.01 to 0.1), only a tiny fraction of the original, local links are rewired. This means that the vast majority of the ordered structure from the initial ring lattice is preserved. A node's neighbors are still highly likely to be neighbors with each other, resulting in a high clustering coefficient that falls off very slowly as $\beta$ increases. This property successfully captures the ``cliquey-ness'' of real social networks.
+
+\paragraph{Short Average Path Length.} This is the model's most profound insight. Even a minuscule number of rewired edges act as shortcuts or ``wormholes'' across the network, connecting previously distant clusters. The average path length is no longer determined by the slow process of traversing the ring step-by-step; it is dominated by the ability to quickly jump across the network via these shortcuts. As a result, the average path length plummets dramatically even for very small values of $\beta$, quickly approaching the short, logarithmic scaling ($\log(N)$) characteristic of a random graph. The model demonstrates that a network does not need to be mostly random to be ``small.''
+
+\subsubsection{Visualizing the Small-World Transition}
+
+To illustrate this unique transition, we conducted an experiment. We generated Watts-Strogatz networks with $N = 1000$ nodes and average degree $k = 10$. We varied the rewiring probability $\beta$ logarithmically from $10^{-4}$ to $1$. For each value of $\beta$, we calculated the network's Average Path Length ($L$) and its Average Clustering Coefficient ($C$), normalizing them by the values of the initial ordered lattice ($L_0$ and $C_0$).
+
+The results, which we present through four complementary visualizations, capture the essence of the small-world phenomenon from multiple perspectives, each revealing a different facet of this remarkable transition.
+
+\paragraph{The Normalized Transition: Watching Order Dissolve.} Figure~\ref{fig:small_world_transition} presents our first view, plotting both normalized metrics against $\beta$ on a logarithmic scale. The visual contrast between the two curves is striking and tells a profound story. The normalized path length $L/L_0$ (blue curve) plummets almost vertically at the graph's left edge. Even at $\beta = 10^{-4}$—rewiring a mere one in ten thousand edges—the path length has already dropped to roughly half its original value. By $\beta = 0.01$ (rewiring just 1\% of edges), it has collapsed to a fraction of the ordered lattice value, approaching the short, logarithmic scaling of a random graph.
+
+In stark contrast, the normalized clustering coefficient $C/C_0$ (orange curve) demonstrates remarkable resilience. It remains stubbornly high, hovering near its initial value even as $\beta$ increases by orders of magnitude. Only when $\beta$ approaches 0.1 (10\% rewiring) does clustering begin its descent in earnest. This asymmetry is the mathematical signature of the small-world phenomenon.
+
+The shaded green region highlights what we call the \textbf{small-world regime}—the range of $\beta$ values where clustering remains high (above 50\% of the ordered lattice) while path length has already dropped dramatically (below 50\% of the ordered value). This is the structural sweet spot believed to characterize many real-world social networks, from friendship circles to scientific collaborations. It is a network state that enjoys the best of both worlds: the efficiency of global connectivity without sacrificing the integrity of local community structure.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/small_world_transition.png}
+    \caption{\textbf{The small-world transition.} As rewiring probability $\beta$ increases, the normalized average path length $L/L_0$ (blue) drops precipitously while the normalized clustering coefficient $C/C_0$ (orange) remains high. The shaded region highlights the small-world regime where both short paths and high clustering coexist.}
+    \label{fig:small_world_transition}
+\end{figure}
+
+\paragraph{Absolute Magnitudes: Quantifying the Transformation.} To fully appreciate the dramatic nature of this transition, we must move beyond proportional changes and examine the raw numbers. Figure~\ref{fig:absolute_metrics} presents the absolute values of both metrics, plotted on dual y-axes to accommodate their different scales.
+
+The magnitude of the path length transformation is extraordinary. In the initial ordered ring lattice ($\beta = 0$), the average path length is approximately $L_0 \approx 50$ steps. This makes intuitive sense: to traverse from one side of a ring to the opposite side requires crossing roughly half the network's circumference. However, introduce even minimal rewiring, and this number collapses. At $\beta = 0.01$, the average path length has plummeted to approximately 10 steps—a reduction of 80\%. By the time we reach full randomness at $\beta = 1.0$, the path length has stabilized at roughly $L_{\text{random}} \approx 3.3$ steps, reflecting the characteristic logarithmic scaling of random networks. This is the mathematical foundation of the ``six degrees of separation'' phenomenon—even in a network of 1000 nodes, you are never more than a handful of hops from anyone else.
+
+The clustering coefficient, shown on the secondary axis, tells a complementary story. Starting at $C_0 \approx 0.67$ (meaning two-thirds of a node's neighbors are also neighbors with each other), the clustering decreases much more gradually. Even at $\beta = 0.1$, where the network has shed much of its ordered structure, clustering remains around $C \approx 0.3$—still far higher than the near-zero value of $C_{\text{random}} \approx 0.008$ in the fully random regime.
+
+These absolute values reveal the profound asymmetry of the transition. The global property (path length) is exquisitely sensitive to disorder, transforming with the addition of just a few shortcuts. The local property (clustering) is far more robust, requiring substantial rewiring before it begins to erode. This is why small-world networks are simultaneously ``small'' and ``structured.''
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/absolute_metrics.png}
+    \caption{\textbf{Absolute network metrics.} The raw values show the path length (blue) plummeting from $\sim$50 to $<$5, while clustering (orange) decreases more gradually from 0.67. This quantifies the dramatic structural transformation that occurs with minimal rewiring.}
+    \label{fig:absolute_metrics}
+\end{figure}
+
+\paragraph{The Phase Space Trajectory: Mapping the Journey.} Our third visualization, Figure~\ref{fig:phase_space}, takes a fundamentally different approach. Rather than plotting metrics against $\beta$, we plot them against \emph{each other}, creating a two-dimensional phase space where the x-axis represents average path length and the y-axis represents clustering coefficient. Each point in this space corresponds to a complete network with a specific value of $\beta$, color-coded from yellow-green (low $\beta$, ordered) through purple to dark blue (high $\beta$, random).
+
+The resulting trajectory is a visual map of the network's journey through structural phase space. The path begins in the upper-right corner—the ordered regime characterized by high clustering and long paths, marked with a red star at the coordinates $(L_0 \approx 50, C_0 \approx 0.67)$. As $\beta$ increases, the trajectory initially moves almost horizontally to the left. This leftward motion represents the precipitous drop in path length while clustering remains high—the hallmark of the small-world regime. The network is traversing the green-shaded small-world region, a structural zone where local communities coexist with global shortcuts.
+
+As $\beta$ continues to increase, the trajectory begins a diagonal descent toward the bottom-left corner—the random regime, marked with a blue star at $(L_{\text{random}} \approx 3.3, C_{\text{random}} \approx 0.008)$. In this final state, the network has lost all vestige of its original structure. The clustering has dissolved, and what remains is a homogeneous, structureless web of connections.
+
+This phase space representation is more than a visualization; it is a conceptual framework. Any network—whether real or simulated—can be plotted in this space by measuring its $L$ and $C$ values. A Facebook friendship network would likely appear in the small-world region. A power grid, constrained by geography and engineering, might sit closer to the ordered regime. A network of random collaborations might drift toward the random corner. The phase space provides a universal coordinate system for understanding network structure.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/phase_space_trajectory.png}
+    \caption{\textbf{Phase space trajectory.} Each point represents a network with a specific $\beta$ (color-coded). The trajectory moves from the ordered regime (top-right: high clustering, long paths) through the small-world regime to the random regime (bottom-left: low clustering, short paths). The small-world regime occupies the space with short paths but retained clustering.}
+    \label{fig:phase_space}
+\end{figure}
+
+\paragraph{Quantifying ``Small-Worldness'': The $\sigma$ Coefficient.} Our final visualization, Figure~\ref{fig:small_world_metric}, introduces a single composite metric designed to answer a deceptively simple question: How ``small-world'' is a network? We define the \textbf{small-world coefficient} as:
+
+\begin{equation}
+\sigma = \frac{C / C_{\text{random}}}{L / L_{\text{random}}}
+\end{equation}
+
+This ratio compares a network's clustering and path length to those of an equivalent random graph (same $N$ and average degree). The numerator asks, ``How much more clustered are you than a random network?'' The denominator asks, ``How much longer are your paths than a random network?'' A small-world network achieves high clustering without paying the cost of long paths, so $\sigma$ will be substantially greater than 1.
+
+The plot reveals a striking pattern. The $\sigma$ curve rises sharply from the ordered regime, reaching a pronounced peak at approximately $\beta \approx 0.05$, where $\sigma$ exceeds 15. At this optimal point, the network is more than 15 times as clustered as a random graph would be, relative to how much longer its paths are. This is the configuration that maximizes small-world character.
+
+The curve's behavior at the extremes is equally instructive. At very low $\beta$ (ordered lattice), $\sigma$ is modest because, while clustering is indeed high, the path length is also dramatically longer than in a random graph. You are paying an enormous penalty in connectivity for that local structure. Conversely, at high $\beta$ approaching 1 (random graph), $\sigma$ asymptotically approaches 1. Both clustering and path length converge to their random values, so the ratio becomes unity—the network has no special properties.
+
+The green shaded region, where $\sigma > 1$, delineates the range of $\beta$ values (approximately $0.001$ to $0.3$) that exhibit genuine small-world properties. Within this range, and particularly near the peak, networks achieve the remarkable combination of local cohesion and global efficiency. This quantifies what we observed qualitatively in the previous figures: the small-world phenomenon is not a binary on/off switch but a continuous spectrum, with an identifiable optimal regime.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/small_world_metric.png}
+    \caption{\textbf{Small-world coefficient $\sigma$.} The ratio $\sigma = (C/C_{\text{random}}) / (L/L_{\text{random}})$ peaks at intermediate $\beta$ values, quantifying the optimal small-world regime. Values $\sigma > 1$ indicate small-world properties; the peak near $\beta \approx 0.05$ shows where this phenomenon is strongest.}
+    \label{fig:small_world_metric}
+\end{figure}
+
+\paragraph{Synthesis: Four Lenses on One Phenomenon.} Together, these four visualizations provide a comprehensive understanding of the small-world transition. The normalized transition plot (Figure~\ref{fig:small_world_transition}) reveals \emph{when} and \emph{how fast} properties change with $\beta$. The absolute metrics plot (Figure~\ref{fig:absolute_metrics}) shows \emph{how much} they change in real, measurable terms. The phase space trajectory (Figure~\ref{fig:phase_space}) illustrates \emph{where} networks exist in the landscape of possible structures and the \emph{path} they traverse during the transition. The $\sigma$ coefficient plot (Figure~\ref{fig:small_world_metric}) distills all of this into \emph{a single number} that quantifies small-world character, allowing direct comparison across different networks and parameter regimes.
+
+The convergent message is clear: a vanishingly small amount of disorder—rewiring just a few percent of edges—is sufficient to transform a highly structured, locally organized network into one that is globally connected while still retaining the vast majority of its local community structure. This is not a gradual, linear process but a sharp, asymmetric transition with a well-defined optimal regime. It is this precise balance that makes small-world networks simultaneously efficient for communication and robust in their community organization—properties that will have profound implications for how contagions spread through them.
+
+\subsubsection{Implications for Our Contagion Simulation}
+
+The unique hybrid structure of a small-world network suggests a distinct and complex contagion pattern, different from the uniform spread in a random network.
+
+\paragraph{Intense Local Outbreaks.} The high degree of clustering will likely lead to rapid, intense outbreaks within local communities. Once a virus enters a ``clique,'' it can spread quickly among the densely connected members of that group.
+
+\paragraph{Cascading Jumps.} The spread between these clusters would be slow if not for the shortcuts. These shortcuts provide a pathway for an infected individual in one cluster to ``jump'' the disease to a completely different part of the network, seeding a new local outbreak in a distant community.
+
+\paragraph{Stuttering Epidemic Curve.} We hypothesize that the overall epidemic curve might not be a single smooth bell shape. Instead, it could appear as a series of smaller, overlapping outbreaks, with periods of rapid growth as the virus saturates a new cluster, followed by a plateau, and then another burst of growth as it jumps to the next.
+
+\subsection{The Scale-Free Network: A World of Hubs (Barabási-Albert Model)}
+
+\subsubsection{Motivation and Historical Context}
+
+In the late 1990s, as network science was solidifying around the random and small-world models, a new set of empirical data emerged that fit neither framework. Physicist Albert-László Barabási and his colleague Réka Albert were mapping the structure of the nascent World Wide Web, expecting to find a degree distribution resembling the Poisson bell curve of a random network, where most websites would have a similar, average number of incoming links.
+
+What they discovered was completely different. Their data revealed a \textbf{power-law distribution}: the vast majority of websites had very few incoming links, but a statistically significant minority—hubs like Yahoo and later Google—had an astronomical number of connections. This ``long-tail'' distribution indicated that the web's structure was fundamentally unequal, with extreme variation in node importance. The same pattern was soon discovered in other real-world networks, from protein-interaction networks in biology to citation networks in academia, from airport connection systems to social media follower distributions.
+
+To explain this ubiquitous structure, Barabási and Albert proposed the \textbf{scale-free model}, grounded in two simple yet profound principles observed in most real networks: they \textbf{grow} over time, and new connections are made \textbf{preferentially} to already well-connected nodes. This was a paradigm shift. Unlike the ER and WS models, which generate static snapshots of networks, the BA model is inherently \textit{dynamic}, capturing the evolutionary process by which real networks emerge and develop.
+
+\subsubsection{Formal Construction and Parameters}
+
+The Barabási-Albert (BA) model is generative and time-dependent, mimicking the way real networks evolve. Its algorithm is based on two core mechanisms that operate in tandem as the network grows.
+
+\paragraph{Growth.} The network does not start as a fixed set of isolated nodes. Instead, it begins with a small initial core of $m_0$ connected nodes. The network then grows over discrete time steps. At each time step $t$, a single new node is added to the network.
+
+\paragraph{Preferential Attachment.} When a new node joins the network, it does not connect randomly. Instead, it creates exactly $m$ edges (where $m \le m_0$) that link it to nodes already present in the network. The crucial feature is that the probability $\Pi$ of the new node connecting to an existing node $i$ is \textit{not} uniform across all nodes. Rather, it is proportional to the current degree $k_i$ of that node. Formally:
+
+\begin{equation}
+\Pi(k_i) = \frac{k_i}{\sum_j k_j}
+\end{equation}
+
+This is the mathematical formalization of a ``rich-get-richer'' or ``Matthew effect'' mechanism. A node that already has many connections is far more likely to attract new connections, creating a positive feedback loop that amplifies initial advantages. An unknown new website is more likely to link to Google (high degree) than to an obscure personal blog (low degree). A researcher is more likely to cite a highly-cited paper than an unknown work. This seemingly simple rule has profound consequences for the network's structure.
+
+But does this mechanism actually work as advertised? To empirically demonstrate the first-mover advantage, we constructed a BA network step-by-step, recording the degree of selected nodes at each time step as the network grew from $m_0=5$ initial nodes to a final size of $N=1000$. Figure~\ref{fig:ba_evolution} traces the evolutionary trajectories of representative nodes that joined the network at different stages: early arrivals (nodes 0-4, solid lines), mid-stage entrants (node 250, dashed line), and late arrivals (node 900, dotted line).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/ba_degree_evolution.png}
+    \caption{\textbf{First-mover advantage in action: The rich get richer over time.} The degree evolution of individual nodes during network growth reveals the inexorable amplification of initial advantages. Early nodes (solid lines, arriving at time steps 0-4) accumulate connections at a dramatically higher rate than nodes entering later (dashed and dotted lines). By the network's maturity (time step 1000), early node 0 has reached degree $\sim$160, while late-arriving node 900 has barely exceeded 10 connections despite having similar opportunities. The gap between early and late nodes \textit{widens} over time rather than narrowing, demonstrating that preferential attachment creates permanent stratification. The purple line (node 4, an early arrival) shows the most explosive growth, benefiting maximally from both first-mover advantage and stochastic variation.}
+    \label{fig:ba_evolution}
+\end{figure}
+
+The results are unequivocal. Early-arriving nodes (solid lines) begin with a small advantage—they start with slightly more connections simply by virtue of being present longer. But preferential attachment transforms this modest head start into an enormous, permanent gap. As the network grows, these early nodes attract new connections at an accelerating rate. Their trajectories curve upward, with some reaching final degrees exceeding 160 connections. Node 4 (purple line) is particularly successful, showing that even among early arrivals, stochastic variation creates winners and losers, but all early nodes benefit from the fundamental advantage of seniority.
+
+In stark contrast, late-arriving nodes (dotted lines near the bottom) are condemned to remain peripheral. Node 900, entering the network when it already contains 900 established nodes, faces overwhelming competition. The preferential attachment probability strongly favors existing high-degree nodes, leaving latecomers with scraps. By the network's maturity, node 900 has accumulated barely 10 connections—more than an order of magnitude fewer than the early arrivals, despite being present for 100 time steps.
+
+The mid-stage node (node 250, dashed line) demonstrates an intermediate fate: better off than late arrivals but unable to catch the early movers. The crucial insight is that the gap between early and late nodes does not remain constant or narrow over time—it \textit{widens}. The advantage compounds. This is the mathematical essence of the Matthew effect: ``For unto every one that hath shall be given, and he shall have abundance: but from him that hath not shall be taken away even that which he hath'' (Matthew 25:29). Preferential attachment ensures that network inequality is not just present but inevitable and self-amplifying.
+
+\subsubsection{Detailed Properties and Mathematical Analysis}
+
+The interplay of growth and preferential attachment inevitably produces a network with a unique and striking set of properties that distinguish it from both random and small-world topologies.
+
+\paragraph{Power-Law Degree Distribution.} The signature characteristic of a scale-free network is its degree distribution, which follows a power law of the form:
+
+\begin{equation}
+P(k) \sim k^{-\gamma}
+\end{equation}
+
+where $\gamma$ is a constant exponent, typically between 2 and 3 for many real-world networks. This distribution has no characteristic ``scale'' or typical average—hence the name \textbf{scale-free}. Unlike the Poisson distribution of the ER model, where extreme deviations from the mean are exponentially rare, a power-law distribution has a ``long tail,'' meaning that nodes with an extremely high degree (hubs) are not statistical anomalies but are expected, significant components of the network.
+
+To understand what this means in practice, we must visualize the degree distribution from two perspectives. Figure~\ref{fig:ba_degree_dist} presents a direct comparison between the ER and BA degree distributions using the same network size ($N=1000$) and average degree (approximately 10). Panel (A) shows the distributions on a linear scale—the familiar view. Here, the ER network's degree distribution forms the characteristic Poisson ``bell curve,'' tightly clustered around the mean degree of 10, with a maximum degree of only 20. This is visual proof of the network's homogeneity: nearly all nodes are similar, with degrees close to the average.
+
+The BA network's distribution, in stark contrast, tells a radically different story. While the peak occurs at low degrees (most nodes have few connections), the distribution exhibits a pronounced ``long tail'' extending far to the right. The maximum degree is not 20 but 148—more than seven times larger! This tail represents the hubs, nodes so highly connected that they would be statistical impossibilities in a random network.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/ba_degree_distributions.png}
+    \caption{\textbf{Degree distribution signatures: The democracy of random networks vs. the aristocracy of scale-free networks.} (A) Linear scale reveals the fundamental difference in node equality. The ER network (blue) exhibits a symmetric bell curve where most nodes cluster near the average—a structurally egalitarian network. The BA network (red) shows a sharp peak at low degrees with an extended ``long tail'' reaching extreme values—evidence of massive inequality in connectivity. (B) Log-log scale reveals the mathematical signature: the ER distribution curves (characteristic of exponential decay), while the BA distribution follows a straight line over a significant range—the definitive signature of a power law. The dashed red line shows the fitted power law $P(k) \sim k^{-2.21}$ in the clean region where the relationship holds.}
+    \label{fig:ba_degree_dist}
+\end{figure}
+
+But the true signature of a scale-free network is revealed only when we plot the same data on a log-log scale, as shown in Panel (B). This transformation is not merely a visualization trick; it is the mathematical litmus test for identifying power laws. On a log-log plot, the ER distribution maintains its curved shape—evidence that it is fundamentally an exponential process with a characteristic scale. The BA distribution, however, transforms into an approximately straight line over a substantial range of degree values (roughly from degree 8 to 40). This linearity on a log-log plot is the unmistakable fingerprint of a power-law relationship. The slope of this line corresponds to the negative of the exponent $\gamma$ in the power-law formula. For this network, the fitted exponent is approximately $\gamma \approx 2.21$, consistent with the theoretical prediction for BA networks.
+
+The deviations from perfect linearity at the extremes are expected and informative. At very low degrees (left side), we see the effects of the minimum degree constraint imposed by the construction algorithm. At very high degrees (right side, beyond degree 40), the data becomes noisy due to the small number of extreme hubs, but these hubs nevertheless exist and dominate the network—a phenomenon that would be vanishingly rare in a Poisson distribution.
+
+When plotted on a log-log scale, a power law appears as a straight line with slope $-\gamma$, providing a clear visual signature that distinguishes scale-free networks from other topologies. This distribution implies that while most nodes have very few connections (the ``long tail'' of small nodes), a small but crucial number of nodes act as highly connected hubs that dominate the network's connectivity.
+
+\paragraph{Emergence of Hubs.} Hubs are not a fortunate accident in the BA model; they are a mathematical inevitability. The preferential attachment rule creates a positive feedback loop: nodes that arrive early in the network's history have a ``first-mover advantage.'' With more time to accumulate connections and a higher degree at each subsequent time step, they attract an ever-growing share of new links. This process naturally leads to a highly stratified, hierarchical topology dominated by a small elite of central hubs. The network exhibits extreme inequality in connectivity—a structure fundamentally different from the egalitarian random network.
+
+To make this structural hierarchy visible, Figures~\ref{fig:ba_net_er}, \ref{fig:ba_net_ws}, and \ref{fig:ba_net_ba} present visualizations of actual network structures using identical parameters ($N=100$ nodes, similar average degree). In each visualization, node size and color intensity represent degree: larger, darker red nodes are more highly connected; smaller, lighter yellow nodes have fewer connections.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{figures/ba_network_er.png}
+    \caption{\textbf{Random (Erdős-Rényi) network structure.} A fundamentally egalitarian topology with no clear hierarchy. Nodes exhibit relatively uniform sizes and colors, reflecting the narrow degree distribution. The maximum degree (16) is only slightly above the average (9.5). No node dominates; connectivity is democratically distributed.}
+    \label{fig:ba_net_er}
+\end{figure}
+
+Figure~\ref{fig:ba_net_er} shows the ER network as our baseline. The visual impression is one of uniformity and democracy. While there is variation in node size (reflecting the random fluctuations inherent in the Poisson distribution), there is no dramatic hierarchy. The largest nodes are only modestly larger than average, and they are scattered throughout the network with no particular structure.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{figures/ba_network_ws.png}
+    \caption{\textbf{Small-world (Watts-Strogatz) network structure.} A topology characterized by local clustering with long-range shortcuts. Node sizes show moderate variation, but the defining feature is the spatial organization: dense local communities connected by occasional cross-network edges. Maximum degree (12) remains close to average (10.0), maintaining relative equality while introducing global shortcuts.}
+    \label{fig:ba_net_ws}
+\end{figure}
+
+Figure~\ref{fig:ba_net_ws} presents the small-world network. Here we see the defining characteristic of this model: clear spatial clustering of nodes into local neighborhoods, connected by occasional long-range shortcuts (edges that span across the layout). The degree distribution remains relatively narrow—maximum degree is 12, close to the average of 10—but the spatial organization creates a qualitatively different structure from pure randomness.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\columnwidth]{figures/ba_network_ba.png}
+    \caption{\textbf{Scale-free (Barabási-Albert) network structure.} A dramatically hierarchical topology dominated by visible hub nodes. The five largest hubs (dark red, highlighted with thick borders) are immediately apparent, dwarfing the majority of small, peripheral nodes (pale yellow). Maximum degree (41) is more than four times the average (9.5), reflecting extreme inequality. The hub-and-spoke structure is the visual signature of preferential attachment: early-arriving nodes have accumulated connections at the expense of latecomers, creating a network aristocracy.}
+    \label{fig:ba_net_ba}
+\end{figure}
+
+Figure~\ref{fig:ba_net_ba} reveals the scale-free network's true nature. The contrast with the previous two models is immediate and striking. A small number of massive hub nodes (shown in dark red, highlighted with thick borders to mark the top 5 hubs) dominate the visual landscape. These hubs are not slightly larger than average—they are dramatically, unmistakably larger. The maximum degree is 41, more than four times the average of 9.5. The majority of nodes are small and peripheral (pale yellow), clustered around the edges. This is not a network of equals; it is a network with a clear aristocracy. The visual structure is often described as ``hub-and-spoke,'' reminiscent of airline networks where a few major airports (hubs) connect to many smaller regional airports (spokes).
+
+These three visualizations, when viewed in sequence, provide intuitive, immediate evidence for a fundamental truth: \textit{how} a network is constructed matters profoundly. Starting with identical basic parameters (number of nodes, average connectivity), three different construction algorithms produce three fundamentally different structures with radically different implications for dynamics and vulnerability.
+
+\paragraph{Quantifying Hub Dominance.} The visual evidence of hubs is compelling, but we must also quantify their dominance numerically to fully appreciate the extreme concentration of power in scale-free networks. Figure~\ref{fig:ba_dominance} analyzes a BA network with $N=1000$ nodes to answer a precise question: What fraction of the network's total connectivity is controlled by the top $X$\% of nodes?
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/ba_hub_dominance.png}
+    \caption{\textbf{Hub dominance: Extreme inequality in scale-free networks.} (A) The top 20 nodes by degree, ranked from highest to lowest. The top hub alone has $\sim$150 connections, dwarfing the average node degree of 10. Even the 20th-ranked node has 40+ connections—four times the average. The top 5 hubs (dark red) form a super-elite even within the elite. (B) Cumulative connectivity control by top percentiles. The top 1\% of nodes (just 10 nodes) control over 9\% of all connections. The top 10\% control a full third (33\%) of the network's connectivity. This extreme concentration—where 10\% of nodes control one-third of resources—is the quantitative signature of scale-free inequality. Compare this to a random network where the top 10\% would control only $\sim$15\% of connections.}
+    \label{fig:ba_dominance}
+\end{figure}
+
+Panel (A) shows the degree distribution of the top 20 nodes, ranked from highest to lowest. The top hub in this particular network realization has approximately 150 connections—15 times the network average of 10. Even the 20th-ranked node has over 40 connections, still four times the average. The decline from rank 1 to rank 20 is not gradual but follows the power-law decay: the very top hubs are in a class of their own (dark red bars), dramatically exceeding even the other highly-ranked nodes.
+
+Panel (B) quantifies the cumulative dominance. The results are striking: the top 1\% of nodes (merely 10 nodes in a network of 1000) control 9.2\% of all connections. The top 5\% control 23.3\%, and the top 10\% command fully one-third (33.0\%) of the network's total connectivity. This is extreme inequality by any measure. For context, in a perfectly egalitarian network, the top 10\% would control exactly 10\% of connections. In our ER random network (not shown), the top 10\% controls approximately 15\% of connections—modest inequality due to random variation. But in the BA network, the concentration is more than double: 33\%. This quantifies what we saw visually—a network oligarchy, where a tiny elite controls a vastly disproportionate share of the connectivity infrastructure. This numerical fact has immediate practical implications: in a disease outbreak, protecting just 50 nodes (5\%) could potentially reduce transmission capacity by nearly a quarter.
+
+\paragraph{Robustness and Vulnerability: The Achilles' Heel.} Scale-free networks exhibit a fascinating and paradoxical duality in their resilience properties. They are highly \textbf{robust to random failures}. Since the vast majority of nodes have a very low degree, the random removal of a node (simulating, for example, a server crash or a person leaving a social network) is unlikely to disconnect large portions of the network or significantly disrupt overall connectivity. The network degrades gracefully under random attack.
+
+However, this robustness comes at a severe cost. Scale-free networks are extremely \textbf{vulnerable to targeted attacks}. The removal of just a few of the highest-degree hubs can catastrophically fragment the network, shattering it into a collection of disconnected islands and effectively destroying its large-scale connectivity. This vulnerability is the structural Achilles' heel of scale-free topologies. In the context of infrastructure networks (power grids, the internet), this means that deliberate attacks on key nodes can be devastating. In the context of epidemiology, it suggests a clear intervention strategy: identify and protect (or, in the case of misinformation, monitor) the hubs.
+
+To empirically demonstrate this paradox, we conducted a controlled experiment comparing ER and BA networks under two attack scenarios: random node removal and targeted removal of highest-degree nodes. Figure~\ref{fig:ba_attack} presents the results, measuring network integrity by tracking the size of the giant component (the largest connected cluster) as nodes are progressively removed.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/ba_attack_simulation.png}
+    \caption{\textbf{The Achilles' heel: Robustness and vulnerability in scale-free networks.} (A) Random node removal reveals the BA network's (red) superior robustness compared to the ER network (blue). The scale-free network maintains connectivity longer because randomly selected nodes are overwhelmingly likely to be low-degree peripheral nodes whose removal has minimal impact. The ER network, with its more uniform degree distribution, degrades at a similar rate. (B) Targeted hub removal exposes the BA network's catastrophic vulnerability. Removing just 5\% of the highest-degree hubs causes the giant component to begin fragmenting immediately. By the time 20\% of top hubs are removed, the network has shattered into isolated clusters. The ER network, lacking extreme hubs, degrades gracefully and predictably. This asymmetry—robust to random failure, vulnerable to intelligent attack—is the defining resilience signature of scale-free topologies.}
+    \label{fig:ba_attack}
+\end{figure}
+
+Panel (A) shows the random attack scenario. Here, the BA network (red) actually performs slightly \textit{better} than the ER network (blue). Both networks degrade gradually, but the BA network maintains a larger giant component for longer. Why? Because in a scale-free network, the vast majority of nodes are low-degree peripheral nodes. Random removal overwhelmingly targets these insignificant nodes, leaving the critical hub infrastructure intact. The network can lose many peripheral nodes before its connectivity is seriously compromised. The ER network, with its more democratic degree distribution, has no ``expendable'' nodes—every node contributes roughly equally to connectivity, so random removal causes steady, predictable degradation.
+
+Panel (B) reveals the catastrophic flip side. When we target the hubs—removing nodes in descending order of degree—the BA network (red) collapses almost immediately. The giant component begins shrinking as soon as the first few hubs are removed (around 5\% removal), and by 20\% removal, the network has fragmented into isolated clusters, with the giant component reduced to less than 60\% of its original size. By 40\% hub removal, the network is completely shattered. The ER network (blue), in contrast, degrades smoothly and predictably because it has no critical nodes whose removal causes disproportionate damage.
+
+This experiment quantifies a profound strategic insight: the structure that makes scale-free networks efficient (concentration of connectivity in hubs) also makes them fragile. They can withstand accidents but not sabotage. They are robust but not resilient. An adversary who understands this structure can cause maximum damage with minimal effort by targeting the aristocracy. A public health official facing an epidemic on a scale-free social network faces the mirror image of this challenge: protect the hubs, and you protect the network.
+
+\subsubsection{Implications for Our Contagion Simulation}
+
+The implications of the scale-free structure for epidemic dynamics are stark and profound, leading to hypotheses that are dramatically different from our previous models.
+
+\paragraph{Super-Spreader Events are Inevitable.} The hubs in a scale-free network will act as \textbf{super-spreaders}. When a contagion infects a single, highly-connected hub node, it will be transmitted to a massive number of other nodes in a single time step. Unlike the relatively uniform spread in a random network or the clustered spread in a small-world network, the infection of a hub represents a catastrophic amplification event.
+
+\paragraph{Explosive and Widespread Cascade.} We predict that this network will produce the most explosive and widespread cascade of all three topologies. The epidemic will not merely spread—it will \textit{erupt}, reaching a large fraction of the population far more quickly than in either the random or small-world models. The presence of hubs creates highways for the contagion, allowing it to bypass the local, incremental spread and jump directly to distant parts of the network.
+
+\paragraph{Low Epidemic Threshold.} The presence of hubs dramatically lowers the \textbf{epidemic threshold}—the critical value of transmission probability $\beta$ above which a disease can sustain itself and cause a major outbreak. This means that even a relatively weak pathogen (low $\beta$) can cause a system-wide epidemic in a scale-free network, whereas it would fizzle out in a random network. The health of the entire network is precariously dependent on the health of its few most connected members. This fundamentally alters our understanding of epidemic risk: structure, not just contagiousness, determines outbreak potential.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/ba_epidemic_threshold.png}
+    \caption{\textbf{Epidemic threshold: Scale-free networks enable outbreaks at arbitrarily low transmission rates.} Infected population fraction after 50 time steps as a function of transmission probability $\beta$. All three networks have 500 nodes, $\langle k \rangle = 10$, and start with 5\% initial infection. ER (blue) and WS (green) networks show a clear threshold behavior: below $\beta \approx 0.08$-$0.10$, outbreaks remain negligible ($<$5\% total infection), but above this threshold, they explode toward saturation. The BA network (red) shows radically different behavior: outbreaks achieve substantial penetration ($>$10\% infection) even at $\beta = 0.02$, far below the ER/WS thresholds. By $\beta = 0.04$, the BA network is already approaching 20\% infection while ER/WS remain below 5\%. The implication: a pathogen with $\beta = 0.03$ (perhaps corresponding to casual contact transmission) would be a minor localized outbreak in a random population, but could infect 15\% of a scale-free population. Hubs act as epidemic amplifiers, sustaining spread even when the transmission probability is too low to support epidemics in homogeneous networks. This is why targeting vaccination at high-degree individuals (hub immunization) is exponentially more effective than random vaccination: removing hubs raises the effective threshold back up, neutering the pathogen's ability to exploit network structure.}
+    \label{fig:ba_threshold}
+\end{figure}
+
+Figure~\ref{fig:ba_threshold} quantifies this threshold difference empirically using SIS (Susceptible-Infected-Susceptible) simulations on networks of $N=500$ nodes with $\langle k \rangle = 10$. We initialize each network with 5\% random infection and run the dynamics for 50 time steps across a range of transmission probabilities $\beta \in [0.01, 0.15]$. The ER network (blue) and WS network (green) show classic threshold behavior: below $\beta \approx 0.08$, infections remain at negligible levels ($<$5\% of the population), but above this critical threshold, outbreaks explode, eventually saturating near 80\% infection.
+
+The BA network (red) tells a dramatically different story. Outbreaks achieve substantial penetration even at extremely low $\beta$. At $\beta = 0.02$—well below the ER/WS thresholds—the BA network already sustains 10\% infection. By $\beta = 0.04$, nearly 20\% of the BA network is infected, while the ER and WS networks remain below 5\%. This is not a small quantitative difference; it is a qualitative phase transition in behavior. A disease with $\beta = 0.03$ (perhaps representing transmission through casual contact or shared surfaces) would cause only minor sporadic outbreaks in a random or small-world population—barely registering epidemiologically—but would infect 15\% of a scale-free population, constituting a significant endemic burden.
+
+The mechanism is straightforward: hubs provide persistent reservoirs. In a random network, every node is approximately equal, so low $\beta$ means low probability of transmission at every step, and chains of infection quickly break. But in a scale-free network, even if 98\% of nodes fail to transmit, the 2\% of nodes that are hubs will have dozens of chances to transmit in each time step. These hubs become persistent sources, continuously reseeding the outbreak. The practical implication is profound: in scale-free populations, ``hub immunization'' strategies—where you vaccinate the most highly connected individuals—can raise the effective epidemic threshold dramatically, potentially rendering an endemic disease extinct. Random vaccination achieves this effect only slowly (each vaccine reduces average $\langle k \rangle$ slightly), but targeted vaccination removes the reservoirs directly, collapsing the epidemic infrastructure.
 
 \end{document}
