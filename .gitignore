@@ -37,3 +37,5 @@ Thumbs.db
 # !figures/.gitkeep
 
 .venv/
+*.md
+!README.md

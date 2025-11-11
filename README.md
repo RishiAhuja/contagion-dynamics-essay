@@ -15,21 +15,31 @@ A computational investigation into how network topology dictates the dynamics of
 
 ```
 contagion-dynamics-essay/
-├── paper.tex                    # Main LaTeX paper (single file)
-├── paper.md                     # Markdown draft (work in progress)
+├── paper.tex                    # Main LaTeX paper
+├── paper.pdf                    # Compiled PDF (generated)
+├── Makefile                     # Build automation
 ├── requirements.txt             # Python dependencies
 ├── README.md                    # This file
-├── figures/                     # Generated figures and visualizations
-│   ├── phase_transition_lambda_0.5.png
-│   ├── phase_transition_lambda_0.8.png
-│   ├── phase_transition_lambda_1.0.png
-│   ├── phase_transition_lambda_1.2.png
-│   ├── phase_transition_lambda_2.0.png
-│   └── phase_transition_curve.png
-├── src/                         # Python scripts for simulations
-│   └── generate_phase_transition.py
-└── sections/                    # LaTeX sections (optional organization)
-    └── 01_introduction.tex
+├── figures/                     # Generated visualizations
+│   ├── phase_transition_*.png           # Section 3.1: ER phase transition
+│   ├── ws_*.png                         # Section 3.2: WS diagrams
+│   ├── small_world_*.png                # Section 3.2: WS analysis
+│   ├── ba_*.png                         # Section 3.3: BA analysis
+│   ├── sir_state_diagram.png            # Section 4: SIR model
+│   ├── sir_algorithm_flowchart.png      # Section 4: Algorithm
+│   ├── sir_parameters.png               # Section 4: Parameters
+│   ├── sir_r0_validation.png            # Section 4: R₀ calculation
+│   ├── sir_epidemic_curves.png          # Section 4: Main results
+│   └── sir_infected_comparison.png      # Section 4: Comparison
+└── src/                         # Python simulation scripts
+    ├── generate_all_figures.py          # Master script (runs all)
+    ├── generate_phase_transition.py     # Section 3.1
+    ├── generate_ws_diagrams.py          # Section 3.2 (diagrams)
+    ├── generate_small_world_analysis.py # Section 3.2 (analysis)
+    ├── generate_ba_analysis.py          # Section 3.3
+    ├── generate_sir_diagrams.py         # Section 4 (diagrams)
+    ├── generate_sir_simulation.py       # Section 4 (simulations)
+    └── test_sir_simulation.py           # Quick test (5 runs)
 ```
 
 ## Prerequisites
@@ -38,12 +48,9 @@ contagion-dynamics-essay/
 
 - LaTeX distribution (TeX Live, MiKTeX, or MacTeX)
 - Required LaTeX packages (usually included):
-  - amsmath
-  - amssymb
-  - graphicx
-  - subcaption
-  - hyperref
-  - enumitem
+  - amsmath, amssymb, graphicx, subcaption
+  - hyperref, enumitem, multicol, caption
+  - authblk, times, titlesec
 
 ### For Python Simulations
 
@@ -55,7 +62,6 @@ contagion-dynamics-essay/
 ### 1. Clone the Repository
 
 ```bash
-cd /path/to/your/workspace
 git clone https://github.com/RishiAhuja/contagion-dynamics-essay
 cd contagion-dynamics-essay
 ```
@@ -76,28 +82,154 @@ pip install -r requirements.txt
 
 ## Usage
 
-### Quick Start (Using Makefile)
+### Option 1: Quick Start (Using Makefile) ⭐ **RECOMMENDED**
 
-The easiest way to generate figures and compile the paper:
+The easiest way to generate everything:
 
 ```bash
-make all          # Generate figures and compile PDF
+make all          # Generate all figures and compile PDF
 make view         # Compile and open PDF (macOS)
-make clean        # Remove auxiliary files
 make help         # Show all available commands
 ```
 
-### Manual Steps
-
-#### Step 1: Generate Figures
-
-Before compiling the paper, generate the phase transition visualizations:
+### Option 2: Generate Specific Sections
 
 ```bash
-python3 src/generate_phase_transition.py
+make figures-section3    # Generate only Section 3 figures
+make figures-section4    # Generate only Section 4 figures
 ```
 
-This will:
+### Option 3: Individual Figure Generation (for debugging)
+
+```bash
+make figures-phase            # ER phase transition
+make figures-ws               # WS network diagrams
+make figures-small-world      # WS analysis
+make figures-ba               # BA analysis
+make figures-sir-diagrams     # SIR model diagrams
+make figures-sir-simulation   # SIR simulations (⚠️ takes ~10-15 min)
+```
+
+### Option 4: Manual Python Execution
+
+#### Generate All Figures (Master Script)
+
+```bash
+python src/generate_all_figures.py
+```
+
+#### Or Generate by Section
+
+```bash
+# Section 3: Network Topologies
+python src/generate_phase_transition.py
+python src/generate_ws_diagrams.py
+python src/generate_small_world_analysis.py
+python src/generate_ba_analysis.py
+
+# Section 4: SIR Simulation Framework
+python src/generate_sir_diagrams.py
+python src/generate_sir_simulation.py  # ⚠️ Takes 10-15 minutes
+```
+
+#### Quick Test (Before Full Simulation)
+
+```bash
+# Test SIR simulation with reduced parameters (5 runs instead of 100)
+python src/test_sir_simulation.py
+# If test results look good, run the full simulation
+```
+
+## Script Details
+
+### Section 3: Network Topologies
+
+#### `generate_phase_transition.py`
+- **Purpose**: Visualize ER random graph phase transition
+- **Runtime**: ~30 seconds
+- **Generates**:
+  - `phase_transition_lambda_*.png` (5 network snapshots)
+  - `phase_transition_curve.png` (quantitative curve)
+
+#### `generate_ws_diagrams.py`
+- **Purpose**: WS ring lattice and rewired network diagrams
+- **Runtime**: ~20 seconds
+- **Generates**:
+  - `ws_ring_lattice.png`
+  - `ws_rewired_network.png`
+
+#### `generate_small_world_analysis.py`
+- **Purpose**: Comprehensive WS small-world transition analysis
+- **Runtime**: ~2-3 minutes
+- **Generates**:
+  - `small_world_transition.png`
+  - `absolute_metrics.png`
+  - `phase_space_trajectory.png`
+  - `small_world_metric.png`
+
+#### `generate_ba_analysis.py`
+- **Purpose**: Complete BA scale-free network analysis
+- **Runtime**: ~2-3 minutes
+- **Generates**:
+  - `ba_degree_evolution.png` (preferential attachment)
+  - `ba_degree_distribution.png` (power law vs Poisson)
+  - `ba_network_*.png` (ER/WS/BA comparison)
+  - `ba_hub_dominance.png`
+  - `ba_attack_simulation.png`
+  - `ba_epidemic_threshold.png`
+
+### Section 4: SIR Simulation Framework
+
+#### `generate_sir_diagrams.py`
+- **Purpose**: Create explanatory diagrams for SIR model
+- **Runtime**: ~10 seconds
+- **Generates**:
+  - `sir_state_diagram.png` (S→I→R with predicate logic)
+  - `sir_algorithm_flowchart.png` (algorithm steps)
+  - `sir_parameters.png` (parameter justifications)
+
+#### `generate_sir_simulation.py` ⚠️ **LONG RUNTIME**
+- **Purpose**: Run complete SIR epidemic simulations
+- **Runtime**: ~10-15 minutes (100 runs × 3 topologies)
+- **Parameters**: N=5000, ⟨k⟩=10, β=0.05, γ=0.1, runs=100
+- **Generates**:
+  - `sir_r0_validation.png` (R₀ calculation diagram)
+  - `sir_epidemic_curves.png` (S/I/R curves for all topologies)
+  - `sir_infected_comparison.png` (infected curves comparison)
+- **Progress**: Shows progress bar with tqdm
+
+#### `test_sir_simulation.py` ✅ **QUICK TEST**
+- **Purpose**: Fast test version of SIR simulation
+- **Runtime**: ~30 seconds (5 runs × 3 topologies)
+- **Parameters**: N=500, runs=5 (reduced)
+- **Use**: Verify implementation before running full simulation
+
+## Compilation
+
+### Compile PDF from LaTeX
+
+```bash
+pdflatex paper.tex
+pdflatex paper.tex  # Run twice for references
+```
+
+Or use Makefile:
+
+```bash
+make pdf
+```
+
+### View PDF (macOS)
+
+```bash
+make view
+```
+
+Or manually:
+
+```bash
+open paper.pdf
+```
 1. Generate 5 network visualizations for λ = 0.5, 0.8, 1.0, 1.2, 2.0
 2. Create a phase transition curve analysis
 3. Save all figures to the `figures/` directory

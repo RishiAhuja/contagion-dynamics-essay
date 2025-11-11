@@ -544,4 +544,568 @@ The BA network (red) tells a dramatically different story. Outbreaks achieve sub
 
 The mechanism is straightforward: hubs provide persistent reservoirs. In a random network, every node is approximately equal, so low $\beta$ means low probability of transmission at every step, and chains of infection quickly break. But in a scale-free network, even if 98\% of nodes fail to transmit, the 2\% of nodes that are hubs will have dozens of chances to transmit in each time step. These hubs become persistent sources, continuously reseeding the outbreak. The practical implication is profound: in scale-free populations, ``hub immunization'' strategies—where you vaccinate the most highly connected individuals—can raise the effective epidemic threshold dramatically, potentially rendering an endemic disease extinct. Random vaccination achieves this effect only slowly (each vaccine reduces average $\langle k \rangle$ slightly), but targeted vaccination removes the reservoirs directly, collapsing the epidemic infrastructure.
 
+\section{The Simulation Framework}
+
+Having mathematically defined the three distinct network topologies that will serve as the substrate for our experiment, we now turn to the dynamics of the cascade itself. To simulate the spread of a contagion, we require a model that can capture the essential states of an epidemic and a set of formal rules governing the transitions between these states. This section outlines the Susceptible-Infected-Recovered (SIR) model, formalizes its rules using predicate logic, and details the parameters of our computational experiment.
+
+\subsection{The Susceptible-Infected-Recovered (SIR) Model}
+
+The SIR model is a foundational compartmental model in epidemiology, first developed by Kermack and McKendrick in 1927. It simplifies the complex reality of an epidemic into three essential states, or ``compartments,'' that an individual (a node in our network) can occupy. This model is ideal for our purposes as it is computationally tractable while still capturing the fundamental dynamics of an outbreak that confers lasting immunity.
+
+The three states are defined as follows:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Susceptible (S):} Nodes in this state are healthy but have no immunity. They can become infected if they come into contact with an infectious individual.
+    
+    \item \textbf{Infected (I):} Nodes in this state have been infected and are capable of transmitting the contagion to their susceptible neighbors.
+    
+    \item \textbf{Recovered (R):} Nodes in this state have passed through the infection and are now considered immune. They can no longer become infected nor can they transmit the contagion. This is a terminal state.
+\end{itemize}
+
+The progression of an epidemic is modeled as a one-way flow of nodes: S $\rightarrow$ I $\rightarrow$ R. Our simulation will track the number of nodes in each of these three compartments at each discrete time step. This unidirectional flow captures diseases that confer lasting immunity (such as measles, chickenpox, or the idealized case of many viral infections following vaccination), distinguishing it from models like SIS (Susceptible-Infected-Susceptible) which model diseases where recovery does not confer immunity.
+
+\subsection{Formalizing Contagion: Rules in Predicate Logic}
+
+To ensure our simulation is built on a rigorous and unambiguous foundation, we formally define the state-transition rules using the language of \textbf{Predicate Logic}. This approach translates our intuitive understanding of the epidemic's rules into a precise mathematical and logical framework, directly connecting our experiment to the principles of discrete mathematics.
+
+First, we define our predicates:
+
+\begin{itemize}[leftmargin=*]
+    \item \texttt{Susceptible}$(x, t)$: Node $x$ is in the Susceptible state at time $t$.
+    \item \texttt{Infected}$(x, t)$: Node $x$ is in the Infected state at time $t$.
+    \item \texttt{Recovered}$(x, t)$: Node $x$ is in the Recovered state at time $t$.
+    \item \texttt{Neighbor}$(x, y)$: Node $x$ and node $y$ share an edge.
+\end{itemize}
+
+Next, we define the two key parameters of our simulation:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{$\beta$ (beta):} The transmission probability per infected neighbor, per time step.
+    \item \textbf{$\gamma$ (gamma):} The recovery probability for an infected node, per time step.
+\end{itemize}
+
+Using these predicates and parameters, we can define the two fundamental rules of state transition in our simulation:
+
+\paragraph{The Infection Rule.} A susceptible node becomes infected based on its exposure to infected neighbors. For any susceptible node $y$ at time $t$, the probability of it remaining susceptible at time $t+1$ depends on the number of its infected neighbors. If $y$ has $k_I$ infected neighbors, the probability of it \textit{not} being infected by any single one of them is $(1 - \beta)$. Therefore, the probability of it not being infected by any of its neighbors is $(1 - \beta)^{k_I}$. The rule for becoming infected is the complement:
+
+\begin{equation}
+\forall y \left( \left(\text{Susceptible}(y, t) \land \left(\exists x \ \text{Infected}(x, t) \land \text{Neighbor}(x, y)\right)\right) \rightarrow P(\text{Infected}(y, t+1)) = 1 - (1 - \beta)^{k_I} \right)
+\end{equation}
+
+This formulation captures the probabilistic nature of transmission while ensuring that exposure to multiple infected neighbors compounds the risk multiplicatively. A node with zero infected neighbors has zero probability of infection. A node with one infected neighbor has probability $\beta$. A node with two infected neighbors has probability $1 - (1-\beta)^2 = 2\beta - \beta^2$, which is greater than $\beta$ but less than $2\beta$, reflecting the realistic diminishing returns of multiple exposures.
+
+\paragraph{The Recovery Rule.} An infected node has a constant probability of recovering at each time step, independent of its neighbors:
+
+\begin{equation}
+\forall x \left( \text{Infected}(x, t) \rightarrow P(\text{Recovered}(x, t+1)) = \gamma \right)
+\end{equation}
+
+This rule models the natural progression of the disease within an individual. The parameter $\gamma$ is the inverse of the expected infectious period. For example, if $\gamma = 0.1$, then on average a node remains infected for $1/\gamma = 10$ time steps before recovering. This independence from network structure reflects the biological reality that recovery is typically determined by individual immune response rather than social contact patterns.
+
+These logical rules form the precise specification that our computational simulation will implement. The beauty of this formalization is that it is unambiguous—there is no room for misinterpretation. Any researcher reading these rules can implement an identical simulation, ensuring reproducibility and allowing for direct comparison of results.
+
+\subsection{The Basic Reproduction Number: Deriving $R_0$}
+
+Before proceeding to our experimental parameters, we must introduce one of epidemiology's most important concepts: the \textbf{basic reproduction number}, denoted $R_0$ (``R-naught''). This single number determines whether a disease can sustain an outbreak or will quickly die out. Understanding $R_0$ is essential for interpreting our simulation results and for appreciating why network structure matters so profoundly.
+
+\subsubsection{Definition and Intuition}
+
+The basic reproduction number $R_0$ is defined as the expected number of secondary infections caused by a single infected individual in a completely susceptible population. It answers a simple question: ``If one person gets sick, how many others will they infect on average before they recover?''
+
+The logic is straightforward:
+
+\begin{itemize}[leftmargin=*]
+    \item If $R_0 < 1$, each infected person infects less than one other person on average. The disease cannot sustain itself and will die out exponentially. Each ``generation'' of the outbreak is smaller than the last.
+    
+    \item If $R_0 = 1$, the disease is at the critical threshold. Each infected person replaces themselves exactly, leading to a constant, endemic level of infection.
+    
+    \item If $R_0 > 1$, each infected person infects more than one other person on average. The disease will grow exponentially in the early stages, potentially causing a major epidemic.
+\end{itemize}
+
+For context, measles has an $R_0$ of 12-18 (one of the most contagious diseases known), seasonal influenza has $R_0 \approx 1.3$, and the original strain of SARS-CoV-2 had $R_0 \approx 2.5$. The value of $R_0$ depends on both the biological properties of the pathogen (how easily it transmits) and the structure of the contact network (how many people each person encounters).
+
+\subsubsection{Derivation for Network-Based SIR}
+
+In our network-based SIR model, we can derive a simple expression for $R_0$ by considering what happens when a single node becomes infected in an otherwise completely susceptible network.
+
+\paragraph{Step 1: Expected Infectious Period.} An infected node has a probability $\gamma$ of recovering at each time step. This is a geometric process, and the expected number of time steps that a node remains infected is:
+
+\begin{equation}
+T_{\text{inf}} = \frac{1}{\gamma}
+\end{equation}
+
+For example, if $\gamma = 0.1$, the expected infectious period is $1/0.1 = 10$ time steps.
+
+\paragraph{Step 2: Transmission per Time Step.} During each time step while infected, the node has $k$ neighbors (where $k$ is the node's degree). In a completely susceptible population, all $k$ neighbors are susceptible. The probability of transmitting to any single neighbor is $\beta$, so the expected number of transmissions per time step is:
+
+\begin{equation}
+\text{Transmissions per step} = k \cdot \beta
+\end{equation}
+
+\paragraph{Step 3: Total Transmissions.} Over the entire infectious period of $T_{\text{inf}}$ time steps, the total expected number of transmissions is:
+
+\begin{equation}
+R_0 = T_{\text{inf}} \times (\text{Transmissions per step}) = \frac{1}{\gamma} \times (k \cdot \beta) = \frac{\beta k}{\gamma}
+\end{equation}
+
+For networks with heterogeneous degree distributions (like our BA scale-free network), we use the average degree $\langle k \rangle$ to obtain a network-averaged $R_0$:
+
+\begin{equation}
+R_0 = \frac{\beta \langle k \rangle}{\gamma}
+\end{equation}
+
+This formula reveals a profound insight: $R_0$ is determined by the ratio of the transmission rate ($\beta \langle k \rangle$) to the recovery rate ($\gamma$). The network structure enters through the average degree $\langle k \rangle$—more connected networks have higher $R_0$ for the same pathogen. However, this is only the average story. In scale-free networks, the \textit{variance} in degree means that hub nodes have individual $R_0$ values far exceeding the network average, explaining their role as super-spreaders.
+
+\subsubsection{Implications for Our Experiment}
+
+Using our chosen parameters ($\beta = 0.05$, $\gamma = 0.1$, $\langle k \rangle \approx 10$), we can calculate the expected $R_0$ for our simulations:
+
+\begin{equation}
+R_0 = \frac{0.05 \times 10}{0.1} = 5
+\end{equation}
+
+An $R_0$ of 5 indicates a highly transmissible disease that will cause substantial outbreaks in all three network topologies. This is by design—we want $R_0$ well above the critical threshold of 1 to ensure the epidemic dynamics are clearly observable and the differences between network structures are pronounced. With $R_0 = 5$, we expect rapid growth phases and eventual saturation of a large fraction of the network, allowing us to compare the \textit{speed} and \textit{shape} of the epidemic curves across topologies.
+
+However, we must note a critical caveat: this formula assumes a homogeneous network where every node has the same degree. As we've seen, this is approximately true for the ER model, reasonably true for the WS model (with its narrow degree distribution around the mean), but dramatically false for the BA model. In the scale-free network, nodes with degree $k = 150$ will have $R_0^{\text{hub}} = (0.05 \times 150) / 0.1 = 75$, making them catastrophic super-spreaders, while peripheral nodes with $k = 2$ will have $R_0^{\text{peripheral}} = (0.05 \times 2) / 0.1 = 1$, barely capable of sustaining transmission. This heterogeneity is precisely what we aim to investigate.
+
+\subsection{Experimental Methodology and Parameters}
+
+To conduct our main experiment, we will implement a discrete-time, agent-based simulation where each node in our generated graphs acts as an ``agent'' following the rules defined above. The goal is to compare the epidemic curves produced by the three different network topologies under identical conditions.
+
+\subsubsection{Network Parameters}
+
+For all simulations, we will use networks with $N = 5{,}000$ nodes and a mean degree of $\langle k \rangle \approx 10$. These values are chosen for several reasons:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Statistical Power:} $N = 5{,}000$ is large enough to observe robust emergent phenomena and minimize the influence of stochastic edge cases, while remaining computationally tractable. A network of this size can exhibit all the key properties we've discussed (hubs, clusters, short path lengths) at a scale representative of real communities.
+    
+    \item \textbf{Comparability:} Using the same $N$ and $\langle k \rangle$ across all three topologies ensures we are conducting a controlled experiment. The \textit{only} variable changing is the network structure itself—the algorithm that determines which edges exist.
+    
+    \item \textbf{Realistic Density:} An average degree of 10 represents a moderately connected network, neither sparse (where epidemics would struggle to spread) nor overly dense (where saturation would be trivially rapid). This value is consistent with estimates of effective contact networks in real epidemiological settings.
+\end{itemize}
+
+The specific construction parameters for each topology are:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Erdős-Rényi:} $G(N, p)$ with $N = 5000$ and $p = \langle k \rangle / (N-1) = 10/4999 \approx 0.002$.
+    \item \textbf{Watts-Strogatz:} $WS(N, k, \beta)$ with $N = 5000$, $k = 10$, and rewiring probability $\beta = 0.1$ (placing the network firmly in the small-world regime).
+    \item \textbf{Barabási-Albert:} $BA(N, m)$ with $N = 5000$ and $m = 5$ (each new node attaches to 5 existing nodes, yielding $\langle k \rangle = 2m = 10$).
+\end{itemize}
+
+\subsubsection{Epidemic Parameters}
+
+We will use a transmission probability of $\beta = 0.05$ and a recovery probability of $\gamma = 0.1$. The rationale for these specific values is:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Transmission Probability ($\beta = 0.05$):} This represents a 5\% chance of transmission per contact per time step. This is moderately contagious—not as transmissible as airborne diseases like measles, but more transmissible than diseases requiring prolonged contact. It ensures that $R_0 > 1$ (as calculated above, $R_0 = 5$), guaranteeing viable epidemics, while remaining low enough that stochastic effects and network structure can meaningfully influence outcomes.
+    
+    \item \textbf{Recovery Probability ($\gamma = 0.1$):} This implies an average infectious period of $1/\gamma = 10$ time steps. If we interpret each time step as one day, this corresponds to a 10-day infectious period, which is realistic for many viral infections (e.g., influenza, early-stage COVID-19). This duration is long enough for the infection to spread through multiple network hops, but short enough that simulations complete in a reasonable number of iterations.
+\end{itemize}
+
+The choice $\gamma = 2\beta$ ensures that recovery is twice as fast as transmission to a single neighbor, creating interesting dynamics where the race between spreading and recovery determines the outbreak's fate.
+
+\subsubsection{Initial Conditions and Stopping Criteria}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Initial Conditions:} Each simulation run will begin at time $t=0$ with all 5,000 nodes in the Susceptible state, except for a single, randomly chosen node which is set to the Infected state to seed the outbreak. This ``patient zero'' scenario allows us to observe how the epidemic emerges and grows from a minimal perturbation, making the role of network structure maximally visible.
+    
+    \item \textbf{Stopping Conditions:} A simulation run concludes when there are no more nodes in the Infected state (i.e., $I(t) = 0$). At this point, the outbreak has ended, and all nodes are in either the Susceptible or Recovered state. The total number of Recovered nodes at the end represents the epidemic's ``final size''—the total fraction of the population that was infected over the course of the outbreak.
+\end{itemize}
+
+\subsubsection{Data Collection and Averaging}
+
+To account for the stochastic nature of both the network generation and the epidemic spread, each experiment (for each of the three topologies) will be repeated \textbf{100 times} with different random initial seeds for both the network construction and the starting infected node. Stochasticity enters our simulations at multiple levels:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Network Randomness:} Even with fixed parameters, each ER, WS, and BA network realization is different due to the probabilistic construction algorithms.
+    \item \textbf{Patient Zero Selection:} The identity of the initial infected node can dramatically affect early dynamics, especially in structured networks.
+    \item \textbf{Transmission and Recovery Events:} Both infection and recovery are probabilistic processes, introducing run-to-run variation even on identical networks.
+\end{itemize}
+
+By averaging over 100 runs, we obtain smooth, statistically robust epidemic curves that represent the expected behavior rather than the outcome of a single lucky or unlucky realization. The final results presented in the next section will be the \textbf{mean} of these 100 runs, with error bars or confidence intervals where appropriate to indicate the variance across runs.
+
+\subsection{Algorithmic Implementation: From Logic to Code}
+
+Having defined the model formally, we now bridge the gap between mathematical specification and computational implementation. The following pseudocode algorithm translates our predicate logic rules into executable steps, providing a complete procedural description of the simulation.
+
+\begin{verbatim}
+Algorithm: SIR Epidemic Simulation on Network
+
+Input: 
+  - Graph G = (V, E) with N nodes
+  - Transmission probability β
+  - Recovery probability γ
+  - Number of runs: runs = 100
+
+Output: 
+  - Time series: S(t), I(t), R(t) averaged over all runs
+
+Procedure SIMULATE_EPIDEMIC(G, β, γ):
+  1. Initialize state arrays:
+     - state[v] ← SUSCEPTIBLE for all v ∈ V
+  
+  2. Select patient zero:
+     - v_0 ← random node from V
+     - state[v_0] ← INFECTED
+  
+  3. Initialize time series:
+     - t ← 0
+     - S[0] ← N - 1
+     - I[0] ← 1
+     - R[0] ← 0
+  
+  4. While I[t] > 0:  // Continue until no infected nodes
+     
+     a. Process infections (S → I):
+        - For each node v where state[v] = SUSCEPTIBLE:
+            - k_I ← count neighbors u of v where state[u] = INFECTED
+            - If k_I > 0:
+                - p_infection ← 1 - (1 - β)^k_I
+                - With probability p_infection:
+                    - Mark v for infection
+     
+     b. Process recoveries (I → R):
+        - For each node v where state[v] = INFECTED:
+            - With probability γ:
+                - Mark v for recovery
+     
+     c. Update states simultaneously:
+        - Apply all marked infections: state[v] ← INFECTED
+        - Apply all marked recoveries: state[v] ← RECOVERED
+     
+     d. Record time series:
+        - t ← t + 1
+        - S[t] ← count of SUSCEPTIBLE nodes
+        - I[t] ← count of INFECTED nodes
+        - R[t] ← count of RECOVERED nodes
+  
+  5. Return time series: (S, I, R)
+
+Main Execution:
+  For each topology in {ER, WS, BA}:
+    For run = 1 to 100:
+      - Generate network G with specified parameters
+      - (S, I, R) ← SIMULATE_EPIDEMIC(G, β=0.05, γ=0.1)
+      - Store results
+    
+    Compute average and variance of (S, I, R) across 100 runs
+\end{verbatim}
+
+Several implementation details merit emphasis:
+
+\paragraph{Synchronous Updates.} Steps 4a and 4b mark nodes for state changes, but these changes are applied simultaneously in step 4c. This synchronous update rule is critical for correct discrete-time simulation. It prevents artifacts where the order of node processing within a time step would affect the outcome. All nodes ``see'' the network state as it was at the start of the time step.
+
+\paragraph{Infection Probability.} The infection rule implements our predicate logic formula exactly: $P(\text{infection}) = 1 - (1-\beta)^{k_I}$. This correctly captures the independent trial structure where each infected neighbor represents a separate chance of transmission.
+
+\paragraph{Termination.} The simulation terminates naturally when $I(t) = 0$. At this point, no further state changes are possible since Susceptible nodes can only be infected by Infected neighbors (none exist), and Recovered nodes never change state. The epidemic has run its course.
+
+This algorithmic specification completes our framework. We have progressed from intuitive concepts (people getting sick) to formal mathematical models (predicate logic rules) to concrete computational procedures (pseudocode). The simulation is now fully specified and reproducible. In the next section, we will present the results of executing this algorithm on our three network topologies and analyze what these results reveal about the fundamental relationship between network structure and contagion dynamics.
+
+\section{Beyond Static Networks: Adaptive Topology During Epidemics}
+
+The models presented thus far—from the foundational Erdős-Rényi random graphs to the complex Barabási-Albert scale-free networks—all share a critical assumption: the network topology is \textbf{fixed} and \textbf{immutable}. We construct a network, seed an infection, and observe the cascade unfold on a static substrate. The edges, once drawn, remain frozen in place for the duration of the epidemic. While this assumption has proven invaluable for understanding the fundamental relationship between network structure and contagion dynamics, it represents a significant departure from reality.
+
+Real-world networks, particularly social networks during a health crisis, are \textbf{adaptive} and \textbf{reactive}. Human beings are not passive nodes awaiting infection; they are intelligent agents capable of perceiving risk and modifying their behavior in response. During the COVID-19 pandemic, we witnessed this adaptation on a massive scale: people formed ``social bubbles'' or ``pods'' with trusted contacts, drastically reduced interactions with those showing symptoms, and fundamentally restructured their contact networks in real time. The network and the epidemic were not independent phenomena but rather components of a tightly coupled, \textbf{co-evolutionary system}.
+
+This section introduces a novel extension to the classical SIR framework: the \textbf{Adaptive SIR (ASIR) model}. We formalize two fundamental behavioral responses—fear-driven isolation and trust-based clustering—as precise network rewiring rules. We demonstrate that these seemingly rational, protective behaviors create competing forces with non-obvious consequences, transforming the epidemic dynamics in ways that challenge our intuitions built from static network models. This contribution represents the core original research of this paper.
+
+\subsection{Motivation: The Limitations of Static Network Models}
+
+Before introducing our model, we must clearly articulate why the static assumption is insufficient and what phenomena it fails to capture.
+
+\subsubsection{The Static Network Assumption}
+
+In our previous simulations (Sections 3 and 4), we implicitly made the following assumptions about the network $G = (V, E)$:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Topology Independence:} The existence of an edge $(u, v) \in E$ is independent of the epidemic states of nodes $u$ and $v$. Whether Bob is connected to Alice does not depend on whether Alice is infected.
+    
+    \item \textbf{Temporal Invariance:} The edge set $E$ is constant over time. We write $E$ rather than $E(t)$ because there is no time dependence. The graph at $t=0$ is identical in structure to the graph at $t=100$.
+    
+    \item \textbf{Agent Passivity:} Nodes have no agency. They do not perceive the epidemic state of their neighbors, nor do they take actions based on that information.
+\end{enumerate}
+
+These assumptions are mathematically convenient—they allow us to decouple network generation from epidemic simulation. We can generate a network once, analyze its structural properties (degree distribution, clustering, path length), and then simulate many epidemics on that same fixed substrate. This controlled setup is ideal for isolating the effect of topology on contagion.
+
+\subsubsection{The Reality of Behavioral Adaptation}
+
+However, these assumptions are empirically violated during real epidemics. The COVID-19 pandemic provided overwhelming evidence of adaptive behavior:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Contact Tracing and Isolation:} Individuals who learned they had been exposed to infected contacts often self-isolated, effectively cutting edges to prevent further transmission.
+    
+    \item \textbf{Social Bubble Formation:} Families and small groups formed exclusive ``pods'' or ``bubbles,'' maintaining internal contact while minimizing external connections. This increased local clustering while reducing long-range links.
+    
+    \item \textbf{Risk-Stratified Mixing:} People preferentially maintained contact with others perceived as low-risk (those following similar precautions, those already recovered, etc.), creating assortative mixing patterns.
+    
+    \item \textbf{Temporal Dynamics:} These behaviors were not static. Early in the pandemic, when fear was high and information was limited, isolation was extreme. As vaccines became available or as ``pandemic fatigue'' set in, networks began to reconnect.
+\end{itemize}
+
+The key insight is that the network topology $G(t)$ becomes a \textit{function of time}, and more importantly, a function of the \textit{current epidemic state}. The edge set $E(t)$ depends on the distribution of Susceptible, Infected, and Recovered nodes at time $t$. This creates a feedback loop: the network structure influences the epidemic dynamics, which in turn influence the network structure, which then further modifies the epidemic, and so on. This is the hallmark of a \textbf{co-evolutionary} or \textbf{coupled dynamical system}.
+
+\subsubsection{Research Questions}
+
+Introducing adaptive behavior raises profound and non-obvious questions that static models cannot address:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Net Effect:} Does adaptive behavior reduce the total epidemic size, or do unintended consequences negate the benefits of individual protective actions?
+    
+    \item \textbf{Temporal Trade-offs:} Do we observe a trade-off between peak reduction and epidemic duration? Might adaptation ``flatten the curve'' (the public health goal during COVID-19) but prolong the outbreak?
+    
+    \item \textbf{Topology Dependence:} Which of our three baseline topologies (ER, WS, BA) benefits most from adaptive behavior? We hypothesize that scale-free networks, with their vulnerable hub structure, might see the greatest benefit from targeted edge removal.
+    
+    \item \textbf{Critical Thresholds:} Is there a minimum speed or intensity of behavioral response required for adaptation to meaningfully alter epidemic outcomes? Can society ``react too slowly'' for adaptation to matter?
+    
+    \item \textbf{Unintended Consequences:} Does increased local clustering (pod formation) inadvertently create epidemic ``reservoirs'' where the virus becomes trapped in dense communities, extending the epidemic's tail?
+\end{enumerate}
+
+These questions are not merely academic. Understanding the interplay between individual behavior and population-level outcomes is essential for designing effective public health interventions. Our model aims to provide a rigorous, quantitative framework for exploring these dynamics.
+
+\subsection{Formalizing Adaptive Behavior: Two Fundamental Rules}
+
+We now introduce the mathematical formalization of two distinct adaptive behaviors observed during epidemics. Each behavior is implemented as a network rewiring rule that operates in parallel with the epidemic dynamics.
+
+\subsubsection{Behavioral Context and Assumptions}
+
+Our model rests on two key assumptions about agent cognition and information:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Local Information:} Each node has perfect knowledge of the epidemic state of its immediate neighbors (those connected by an edge). This is realistic—people typically know if their friends or family members are sick. Nodes do \textit{not} have global information about the epidemic's prevalence in the broader population.
+    
+    \item \textbf{State-Dependent Actions:} Behavioral responses are contingent on epidemic state. Susceptible individuals react to infected neighbors. Infected and Recovered individuals are assumed to be removed from active network rewiring (they are either isolated or no longer at risk).
+\end{itemize}
+
+\subsubsection{Rule 1: Fear-Based Edge Cutting (Isolation)}
+
+The first adaptive behavior models \textbf{risk-averse isolation}. When a susceptible individual becomes aware that one of their contacts is infected, they may choose to sever that connection to reduce their exposure.
+
+\paragraph{Informal Description.} Consider a susceptible node $u$ with a neighbor $v$ who is infected. Each day (time step), $u$ perceives the risk posed by $v$ and, with some probability, decides to ``cut ties''—to avoid contact, to refuse visits, to stop interacting. In network terms, the edge $(u, v)$ is removed from the graph.
+
+\paragraph{Formal Definition.} Let $G(t) = (V, E(t))$ denote the network at time $t$, where the edge set $E(t)$ is now explicitly time-dependent. Let $\alpha \in [0, 1]$ be the \textbf{isolation probability}, a parameter representing the likelihood of edge removal per time step.
+
+We define the \textbf{edge cutting rule} as follows. For any edge $(u, v) \in E(t)$, if one endpoint is Susceptible and the other is Infected:
+
+\begin{equation}
+\bigl( \text{State}(u, t) = S \land \text{State}(v, t) = I \bigr) \lor \bigl( \text{State}(v, t) = S \land \text{State}(u, t) = I \bigr)
+\end{equation}
+
+then with probability $\alpha$, the edge is removed:
+
+\begin{equation}
+E(t+1) \leftarrow E(t) \setminus \{(u, v)\}
+\end{equation}
+
+That is, the edge $(u, v)$ is removed from the network at the next time step.
+
+\paragraph{Mechanistic Interpretation.} This rule captures the fundamental trade-off of social isolation. By severing connections to infected individuals, susceptible nodes reduce their immediate risk of infection. The parameter $\alpha$ controls the \textit{speed} and \textit{intensity} of the response:
+
+\begin{itemize}[leftmargin=*]
+    \item $\alpha = 0$: No isolation. The network remains static (our baseline model).
+    \item $\alpha = 1$: Perfect, instantaneous isolation. Every susceptible-infected edge is cut immediately.
+    \item $0 < \alpha < 1$: Realistic, probabilistic isolation. Some individuals react quickly, others delay, and some never isolate.
+\end{itemize}
+
+\paragraph{Network-Level Consequences.} Edge cutting has several macroscopic effects on network structure:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Degree Reduction:} The average degree $\langle k(t) \rangle$ decreases over time as edges are removed. This is a direct, measurable signature of isolation.
+    
+    \item \textbf{Path Length Increase:} As edges are cut, particularly long-range ``shortcut'' edges in small-world networks, the average path length $L(t)$ increases. The network becomes less globally connected.
+    
+    \item \textbf{Network Fragmentation:} In extreme cases, aggressive edge cutting can disconnect the network entirely, breaking it into isolated components. This is the mathematical analog of complete lockdown.
+\end{itemize}
+
+\subsubsection{Rule 2: Trust-Based Triadic Closure (Pod Formation)}
+
+The second adaptive behavior models \textbf{trust-based clustering}. When two susceptible individuals discover they share a mutual friend (also susceptible), they may form a new connection, reasoning that if their mutual friend trusts both of them, they can safely interact with each other. This is the network science concept of \textbf{triadic closure}: the tendency for two nodes with a common neighbor to become connected themselves.
+
+\paragraph{Informal Description.} Consider two susceptible nodes, $u$ and $w$, who are not currently connected but who both have a susceptible friend $v$ in common. This configuration forms an ``open triangle.'' Each day, $u$ and $w$ might decide to form a ``pod'' or ``bubble''—to establish a direct connection, reasoning that they pose minimal risk to each other since their mutual friend $v$ vouches for them. In network terms, a new edge $(u, w)$ is added to the graph, ``closing'' the triangle.
+
+\paragraph{Formal Definition.} Let $\mu \in [0, 1]$ be the \textbf{clustering probability}, a parameter representing the likelihood of triadic closure per time step.
+
+We define the \textbf{triadic closure rule} for any pair of nodes $u, w \in V$ satisfying:
+
+\begin{enumerate}[leftmargin=*]
+    \item $(u, w) \notin E(t)$ (not currently connected),
+    \item $\text{State}(u, t) = S$ and $\text{State}(w, t) = S$ (both susceptible),
+    \item $\exists v \in V$ such that $(u, v) \in E(t)$, $(v, w) \in E(t)$, and $\text{State}(v, t) = S$ (share a susceptible neighbor).
+\end{enumerate}
+
+When these conditions hold, with probability $\mu$:
+
+\begin{equation}
+E(t+1) \leftarrow E(t) \cup \{(u, w)\}
+\end{equation}
+
+That is, the edge $(u, w)$ is added to the network at the next time step, closing the triangle.
+
+\paragraph{Mechanistic Interpretation.} This rule captures a subtle but important social dynamic. In the absence of perfect information about who is ``safe,'' individuals use their social network as a proxy for trust. The logic is: ``If my friend Alice is being careful, and she's willing to see Bob, then Bob must be careful too, so I can safely see Bob.'' The parameter $\mu$ controls the rate of pod formation:
+
+\begin{itemize}[leftmargin=*]
+    \item $\mu = 0$: No triadic closure. The network structure evolves only through edge cutting.
+    \item $\mu = 1$: Aggressive pod formation. Every open triangle among susceptible nodes closes immediately.
+    \item $0 < \mu < 1$: Realistic, selective pod formation. Some individuals are cautious and limit their bubbles; others expand them readily.
+\end{itemize}
+
+\paragraph{Network-Level Consequences.} Triadic closure has distinct macroscopic effects:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Clustering Increase:} The average clustering coefficient $C(t)$ increases over time as triangles close. This is a direct measure of ``cliquey-ness'' or local community density.
+    
+    \item \textbf{Degree Heterogeneity:} Nodes that are already well-connected (with many neighbors) have more opportunities for triadic closure. This can amplify degree inequality, creating local ``hubs'' within pods.
+    
+    \item \textbf{Path Length Reduction (Locally):} Within a forming pod, path lengths decrease as the subgraph becomes denser. However, between pods, if long-range edges have been cut, global path lengths may still increase.
+\end{itemize}
+
+\subsubsection{The Competing Forces: A Tension at the Heart of Adaptation}
+
+The profound insight of the ASIR model is that Rules 1 and 2 are not complementary—they are in \textbf{tension}. They represent competing architectural forces acting on the network simultaneously:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Rule 1 (Isolation)} is \textit{destructive}. It removes edges, decreases connectivity, and fragments the network. Its goal is epidemic suppression by breaking transmission pathways.
+    
+    \item \textbf{Rule 2 (Clustering)} is \textit{constructive}. It adds edges, increases local density, and reinforces community structure. Its goal is maintaining social connection within trusted groups.
+\end{itemize}
+
+The interaction between these forces creates a \textbf{dynamical attractor}—a characteristic network state that the system evolves toward. We hypothesize that this attractor is a \textbf{highly clustered, poorly connected} network: a collection of dense, isolated pods with few inter-pod links. This is precisely the network structure that public health officials advocated during COVID-19, often without realizing they were implicitly engineering network topology.
+
+However, this structure has an unintended consequence for epidemic dynamics. While it does reduce the \textit{peak} of the outbreak by preventing explosive, network-wide cascades, it may also extend the \textit{duration} of the epidemic. Once the virus enters a dense pod, it saturates that community quickly, but the pod's isolation prevents the local outbreak from burning out by spreading externally. The virus becomes trapped, smoldering within the pod for an extended period. The epidemic curve, rather than the sharp peak of a static network, becomes a flattened, elongated curve—lower but longer.
+
+This is the central research question we will explore in our experiments: \textit{Does adaptive behavior trade peak reduction for duration extension?} And more importantly, \textit{is this trade-off worth it?}
+
+\subsection{The Adaptive SIR (ASIR) Model: Formal Specification}
+
+We now integrate the epidemic dynamics (from Section 4) with the network rewiring rules (from this section) into a unified co-evolutionary model.
+
+\subsubsection{State Space and Variables}
+
+The ASIR model operates on an evolving network $G(t) = (V, E(t))$ with time-dependent topology. Each node $v \in V$ has an epidemic state $\text{State}(v, t) \in \{S, I, R\}$ as before. The model is parameterized by:
+
+\begin{itemize}[leftmargin=*]
+    \item $\beta$: Transmission probability (epidemic parameter)
+    \item $\gamma$: Recovery probability (epidemic parameter)
+    \item $\alpha$: Isolation probability (adaptive parameter, Rule 1)
+    \item $\mu$: Clustering probability (adaptive parameter, Rule 2)
+\end{itemize}
+
+We track not only the epidemic time series $S(t)$, $I(t)$, $R(t)$ but also \textbf{network topology metrics} as functions of time:
+
+\begin{itemize}[leftmargin=*]
+    \item $\langle k(t) \rangle$: Average degree at time $t$
+    \item $C(t)$: Average clustering coefficient at time $t$
+    \item $L(t)$: Average path length at time $t$ (computed on the largest connected component)
+    \item $|E(t)|$: Total number of edges at time $t$
+\end{itemize}
+
+These network metrics are the \textit{signatures} of adaptation. In a static model, $\langle k(t) \rangle$ is constant; in the ASIR model, we expect it to decrease due to edge cutting. Similarly, $C(t)$ should increase due to triadic closure. Plotting these metrics over time will provide direct empirical evidence of network co-evolution.
+
+\subsubsection{The Co-Evolutionary Algorithm}
+
+The ASIR simulation proceeds by interleaving epidemic updates and network updates at each time step. The order of operations is critical and reflects a modeling choice about causality.
+
+\paragraph{Algorithmic Structure.} At each discrete time step $t$, the ASIR model executes the following sequence of operations:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Record Current State:} Store epidemic counts $S(t)$, $I(t)$, $R(t)$ and network metrics $\langle k(t) \rangle$, $C(t)$, $L(t)$, $|E(t)|$.
+    
+    \item \textbf{Adaptive Network Updates} (before epidemic spread):
+    \begin{itemize}[leftmargin=*]
+        \item \textit{Edge Cutting (Rule 1):} For each edge $(u, v) \in E(t)$ connecting a Susceptible and an Infected node, remove the edge with probability $\alpha$.
+        \item \textit{Triadic Closure (Rule 2):} For each pair of Susceptible nodes $u, w$ that share a Susceptible mutual neighbor $v$ but are not directly connected, add edge $(u, w)$ with probability $\mu$.
+    \end{itemize}
+    
+    \item \textbf{Epidemic Updates} (on the modified network $G(t)$):
+    \begin{itemize}[leftmargin=*]
+        \item \textit{Infection (S $\rightarrow$ I):} Each Susceptible node $u$ becomes Infected with probability $1 - (1-\beta)^{k_I}$, where $k_I$ is its count of Infected neighbors in the current network $G(t)$.
+        \item \textit{Recovery (I $\rightarrow$ R):} Each Infected node becomes Recovered with probability $\gamma$.
+        \item Apply all state changes synchronously.
+    \end{itemize}
+    
+    \item \textbf{Termination Check:} If $I(t) = 0$, the epidemic has ended. Otherwise, increment $t$ and repeat.
+\end{enumerate}
+
+\paragraph{Causality and Update Order.} We perform network updates \textit{before} epidemic updates within each time step. This ordering reflects the assumption that individuals observe their neighbors' states and adapt their network \textit{before} the virus has a chance to spread in that time step. This gives adaptation a ``head start'' and represents the best-case scenario for behavioral intervention. An alternative ordering (epidemic first, then adaptation) would model a slower response and would likely show reduced effectiveness of adaptive behavior. We choose the optimistic ordering to establish an upper bound on adaptation's potential benefit.
+
+\paragraph{Computational Considerations.} The triadic closure rule (Rule 2) is computationally expensive. For each pair of non-adjacent nodes, we must check for common neighbors. In a network of $N$ nodes, this is potentially $O(N^2)$ checks per time step. For large networks, we implement an optimization: we only check pairs where at least one node has recently been involved in an edge cutting event, reasoning that individuals are most likely to form new pods immediately after losing a connection. This heuristic reduces computational cost while maintaining model fidelity.
+
+\subsubsection{Predicate Logic Formalization of Adaptive Rules}
+
+To maintain consistency with our rigorous mathematical framework from Section 4, we formally express the adaptive rules using predicate logic, introducing compact notation for clarity.
+
+Let $S(u,t)$, $I(u,t)$, and $R(u,t)$ denote the predicates that node $u$ is Susceptible, Infected, or Recovered at time $t$, respectively.
+
+\paragraph{Edge Cutting Rule (Rule 1).} For any edge $(u,v) \in E(t)$ where one endpoint is Susceptible and the other is Infected:
+
+\begin{equation}
+\bigl( S(u,t) \land I(v,t) \bigr) \lor \bigl( I(u,t) \land S(v,t) \bigr) \rightarrow P\bigl( (u,v) \notin E(t+1) \bigr) = \alpha
+\end{equation}
+
+\paragraph{Triadic Closure Rule (Rule 2).} For any non-adjacent pair of Susceptible nodes $u, w$ sharing a Susceptible neighbor $v$:
+
+\begin{equation}
+\begin{split}
+(u,w) \notin E(t) \land S(u,t) \land S(w,t) \land \\
+\exists v: \bigl( (u,v) \in E(t) \land (v,w) \in E(t) \land S(v,t) \bigr) \\
+\rightarrow P\bigl( (u,w) \in E(t+1) \bigr) = \mu
+\end{split}
+\end{equation}
+
+These formal expressions ensure that our model is mathematically unambiguous and reproducible.
+
+\subsection{Expected Dynamics and Hypotheses}
+
+Before running simulations, we formulate explicit, testable hypotheses about the behavior of the ASIR model based on theoretical reasoning.
+
+\subsubsection{Hypothesis 1: Peak Reduction}
+
+\textbf{Hypothesis:} The adaptive model will exhibit a lower peak infection count $I_{\text{max}}$ compared to the static baseline model on the same initial network topology.
+
+\textbf{Reasoning:} Edge cutting (Rule 1) directly removes transmission pathways between susceptible and infected nodes. This reduces the effective reproduction number $R_{\text{eff}}(t)$ over time. As $R_{\text{eff}}$ decreases, the exponential growth phase of the epidemic is blunted, resulting in a lower peak. This is the intended effect of social distancing and isolation.
+
+\subsubsection{Hypothesis 2: Duration Extension}
+
+\textbf{Hypothesis:} The adaptive model will exhibit a longer epidemic duration (time until $I(t) = 0$) compared to the static baseline.
+
+\textbf{Reasoning:} Triadic closure (Rule 2) creates dense local clusters (pods). Once the virus enters a pod, the high local clustering ensures it spreads to most members of that pod quickly. However, the pod's relative isolation (due to edge cutting of long-range links) traps the virus locally. The epidemic does not die out quickly through global spread and depletion of susceptibles; instead, it persists in a series of localized outbreaks within different pods. This extends the tail of the epidemic curve.
+
+\subsubsection{Hypothesis 3: Topology-Dependent Effectiveness}
+
+\textbf{Hypothesis:} The benefit of adaptive behavior will be greatest on scale-free (BA) networks, moderate on small-world (WS) networks, and least on random (ER) networks.
+
+\textbf{Reasoning:} Scale-free networks are uniquely vulnerable to hub-targeted attacks (as demonstrated in Section 3.3). Edge cutting (Rule 1) disproportionately affects hubs because hubs, by definition, have many neighbors, and thus are more likely to have infected neighbors. Cutting edges to a hub dramatically reduces its spreading power. In contrast, random networks have no hubs, so edge cutting is uniformly distributed and less impactful. Small-world networks fall in between—they have some high-degree nodes and benefit from cutting the long-range shortcuts.
+
+\subsubsection{Hypothesis 4: Non-Monotonic Relationship with $\alpha$ and $\mu$}
+
+\textbf{Hypothesis:} There exists an optimal value $\alpha^*$ such that epidemic size is minimized. Similarly, increasing $\mu$ (clustering) is not universally beneficial—there may be a threshold beyond which clustering increases epidemic size.
+
+\textbf{Reasoning:} If $\alpha$ is too low, isolation is ineffective. If $\alpha$ is too high, the network fragments into many small components before the virus spreads, but once the virus enters a component, it may saturate it completely. There is a balance. Similarly, $\mu = 0$ (no clustering) is our static baseline. Small $\mu$ may be beneficial (maintaining social cohesion), but large $\mu$ creates epidemic traps. The optimal parameter values are an empirical question.
+
+\subsubsection{Hypothesis 5: Observable Network Metrics}
+
+\textbf{Hypothesis:} We will observe the following time-dependent trends in network metrics during an ASIR simulation:
+
+\begin{itemize}[leftmargin=*]
+    \item $\langle k(t) \rangle$ will decrease monotonically (edge cutting dominates early when infections are high).
+    \item $C(t)$ will increase, particularly in the middle phase of the epidemic (pods form as people isolate from the broader network).
+    \item $L(t)$ will initially increase (loss of shortcuts) but may become undefined if the network fragments into disconnected components.
+\end{itemize}
+
+These trends constitute direct empirical evidence of co-evolution and will be a major contribution of our work.
+
+\subsection{Contribution and Significance}
+
+The ASIR model represents a significant extension of classical epidemic modeling on networks. Its contributions are:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Theoretical Framework:} We have formalized two fundamental adaptive behaviors using predicate logic and integrated them into a co-evolutionary epidemic model. This framework is general and can be extended to model other behavioral responses (e.g., vaccination, testing, mask-wearing).
+    
+    \item \textbf{Novel Predictions:} We predict a specific, testable pattern—peak reduction with duration extension—that is not obvious from intuition alone. This ``flattening of the curve'' is precisely the public health strategy employed during COVID-19, yet its network-theoretic basis has not been rigorously analyzed in this manner.
+    
+    \item \textbf{Policy Implications:} Understanding the interplay between individual behavior ($\alpha$, $\mu$) and population outcomes (epidemic size, duration) can inform public health messaging. For example, if our simulations show that $\mu > 0.5$ (aggressive pod formation) is counterproductive, this suggests public health campaigns should emphasize limiting bubble size.
+    
+    \item \textbf{Network Evolution as Data:} By tracking $\langle k(t) \rangle$, $C(t)$, and $L(t)$ over time, we provide a new lens for understanding epidemics. Future work could use real-world mobility or contact-tracing data to estimate these metrics during actual outbreaks, validating or refining our model.
+\end{enumerate}
+
+In the next section, we will implement the ASIR model, run extensive simulations across our three baseline topologies, and test these hypotheses empirically. The results will reveal whether adaptive behavior is a panacea, a pitfall, or a nuanced strategy whose effectiveness depends critically on network structure and parameter choices.
+
 \end{document}
