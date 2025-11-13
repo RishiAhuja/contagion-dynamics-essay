@@ -593,7 +593,10 @@ Using these predicates and parameters, we can define the two fundamental rules o
 \paragraph{The Infection Rule.} A susceptible node becomes infected based on its exposure to infected neighbors. For any susceptible node $y$ at time $t$, the probability of it remaining susceptible at time $t+1$ depends on the number of its infected neighbors. If $y$ has $k_I$ infected neighbors, the probability of it \textit{not} being infected by any single one of them is $(1 - \beta)$. Therefore, the probability of it not being infected by any of its neighbors is $(1 - \beta)^{k_I}$. The rule for becoming infected is the complement:
 
 \begin{equation}
-\forall y \left( \left(\text{Susceptible}(y, t) \land \left(\exists x \ \text{Infected}(x, t) \land \text{Neighbor}(x, y)\right)\right) \rightarrow P(\text{Infected}(y, t+1)) = 1 - (1 - \beta)^{k_I} \right)
+\begin{split}
+\forall y \Big( &\text{Susceptible}(y, t) \land (\exists x \ \text{Infected}(x, t) \land \text{Neighbor}(x, y)) \\
+&\rightarrow P(\text{Infected}(y, t+1)) = 1 - (1 - \beta)^{k_I} \Big)
+\end{split}
 \end{equation}
 
 This formulation captures the probabilistic nature of transmission while ensuring that exposure to multiple infected neighbors compounds the risk multiplicatively. A node with zero infected neighbors has zero probability of infection. A node with one infected neighbor has probability $\beta$. A node with two infected neighbors has probability $1 - (1-\beta)^2 = 2\beta - \beta^2$, which is greater than $\beta$ but less than $2\beta$, reflecting the realistic diminishing returns of multiple exposures.
@@ -727,83 +730,6 @@ To account for the stochastic nature of both the network generation and the epid
 \end{itemize}
 
 By averaging over 100 runs, we obtain smooth, statistically robust epidemic curves that represent the expected behavior rather than the outcome of a single lucky or unlucky realization. The final results presented in the next section will be the \textbf{mean} of these 100 runs, with error bars or confidence intervals where appropriate to indicate the variance across runs.
-
-\subsection{Algorithmic Implementation: From Logic to Code}
-
-Having defined the model formally, we now bridge the gap between mathematical specification and computational implementation. The following pseudocode algorithm translates our predicate logic rules into executable steps, providing a complete procedural description of the simulation.
-
-\begin{verbatim}
-Algorithm: SIR Epidemic Simulation on Network
-
-Input: 
-  - Graph G = (V, E) with N nodes
-  - Transmission probability β
-  - Recovery probability γ
-  - Number of runs: runs = 100
-
-Output: 
-  - Time series: S(t), I(t), R(t) averaged over all runs
-
-Procedure SIMULATE_EPIDEMIC(G, β, γ):
-  1. Initialize state arrays:
-     - state[v] ← SUSCEPTIBLE for all v ∈ V
-  
-  2. Select patient zero:
-     - v_0 ← random node from V
-     - state[v_0] ← INFECTED
-  
-  3. Initialize time series:
-     - t ← 0
-     - S[0] ← N - 1
-     - I[0] ← 1
-     - R[0] ← 0
-  
-  4. While I[t] > 0:  // Continue until no infected nodes
-     
-     a. Process infections (S → I):
-        - For each node v where state[v] = SUSCEPTIBLE:
-            - k_I ← count neighbors u of v where state[u] = INFECTED
-            - If k_I > 0:
-                - p_infection ← 1 - (1 - β)^k_I
-                - With probability p_infection:
-                    - Mark v for infection
-     
-     b. Process recoveries (I → R):
-        - For each node v where state[v] = INFECTED:
-            - With probability γ:
-                - Mark v for recovery
-     
-     c. Update states simultaneously:
-        - Apply all marked infections: state[v] ← INFECTED
-        - Apply all marked recoveries: state[v] ← RECOVERED
-     
-     d. Record time series:
-        - t ← t + 1
-        - S[t] ← count of SUSCEPTIBLE nodes
-        - I[t] ← count of INFECTED nodes
-        - R[t] ← count of RECOVERED nodes
-  
-  5. Return time series: (S, I, R)
-
-Main Execution:
-  For each topology in {ER, WS, BA}:
-    For run = 1 to 100:
-      - Generate network G with specified parameters
-      - (S, I, R) ← SIMULATE_EPIDEMIC(G, β=0.05, γ=0.1)
-      - Store results
-    
-    Compute average and variance of (S, I, R) across 100 runs
-\end{verbatim}
-
-Several implementation details merit emphasis:
-
-\paragraph{Synchronous Updates.} Steps 4a and 4b mark nodes for state changes, but these changes are applied simultaneously in step 4c. This synchronous update rule is critical for correct discrete-time simulation. It prevents artifacts where the order of node processing within a time step would affect the outcome. All nodes ``see'' the network state as it was at the start of the time step.
-
-\paragraph{Infection Probability.} The infection rule implements our predicate logic formula exactly: $P(\text{infection}) = 1 - (1-\beta)^{k_I}$. This correctly captures the independent trial structure where each infected neighbor represents a separate chance of transmission.
-
-\paragraph{Termination.} The simulation terminates naturally when $I(t) = 0$. At this point, no further state changes are possible since Susceptible nodes can only be infected by Infected neighbors (none exist), and Recovered nodes never change state. The epidemic has run its course.
-
-This algorithmic specification completes our framework. We have progressed from intuitive concepts (people getting sick) to formal mathematical models (predicate logic rules) to concrete computational procedures (pseudocode). The simulation is now fully specified and reproducible. In the next section, we will present the results of executing this algorithm on our three network topologies and analyze what these results reveal about the fundamental relationship between network structure and contagion dynamics.
 
 \section{Beyond Static Networks: Adaptive Topology During Epidemics}
 
@@ -1280,5 +1206,33 @@ Several promising directions emerge from this work:
 The 21st century is indeed defined by networks and cascades. From pandemics to information diffusion to financial crises, understanding how phenomena spread through interconnected systems is one of the defining challenges of our time. This paper has shown that network topology is not just a background factor but a fundamental determinant of cascade dynamics and intervention effectiveness. Moreover, by introducing adaptive network modeling, we have demonstrated that networks are not static—they evolve in response to the very cascades they facilitate, creating feedback loops that static models cannot capture.
 
 The ASIR framework, grounded in the rigorous language of discrete mathematics and validated through large-scale computational experiments, provides a new tool for understanding this co-evolutionary dance. As we face future epidemics, both biological and informational, the insights from this work remind us that \textit{structure matters, adaptation matters, and the interaction between them matters most of all}.
+
+\section*{References}
+
+\begin{enumerate}[leftmargin=*, label={[\arabic*]}]
+    \item Erdős, P., \& Rényi, A. (1960). On the evolution of random graphs. \textit{Publications of the Mathematical Institute of the Hungarian Academy of Sciences}, 5(1), 17--60.
+    
+    \item Watts, D. J., \& Strogatz, S. H. (1998). Collective dynamics of 'small-world' networks. \textit{Nature}, 393(6684), 440--442.
+    
+    \item Barabási, A.-L., \& Albert, R. (1999). Emergence of scaling in random networks. \textit{Science}, 286(5439), 509--512.
+    
+    \item Kermack, W. O., \& McKendrick, A. G. (1927). A contribution to the mathematical theory of epidemics. \textit{Proceedings of the Royal Society A}, 115(772), 700--721.
+    
+    \item Newman, M. E. J. (2002). Spread of epidemic disease on networks. \textit{Physical Review E}, 66(1), 016128.
+    
+    \item Pastor-Satorras, R., \& Vespignani, A. (2001). Epidemic spreading in scale-free networks. \textit{Physical Review Letters}, 86(14), 3200--3203.
+    
+    \item Gross, T., D'Lima, C. J. D., \& Blasius, B. (2006). Epidemic dynamics on an adaptive network. \textit{Physical Review Letters}, 96(20), 208701.
+    
+    \item Shaw, L. B., \& Schwartz, I. B. (2008). Fluctuating epidemics on adaptive networks. \textit{Physical Review E}, 77(6), 066101.
+    
+    \item Keeling, M. J., \& Eames, K. T. (2005). Networks and epidemic models. \textit{Journal of the Royal Society Interface}, 2(4), 295--307.
+    
+    \item Holme, P., \& Saramäki, J. (2012). Temporal networks. \textit{Physics Reports}, 519(3), 97--125.
+    
+    \item Funk, S., Gilad, E., Watkins, C., \& Jansen, V. A. (2009). The spread of awareness and its impact on epidemic outbreaks. \textit{Proceedings of the National Academy of Sciences}, 106(16), 6872--6877.
+    
+    \item Block, P., Hoffman, M., Raabe, I. J., Dowd, J. B., Rahal, C., Kashyap, R., \& Mills, M. C. (2020). Social network-based distancing strategies to flatten the COVID-19 curve in a post-lockdown world. \textit{Nature Human Behaviour}, 4(6), 588--596.
+\end{enumerate}
 
 \end{document}
